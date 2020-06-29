@@ -1,7 +1,6 @@
 
 function throw( text )
 	print( "Exception: " .. text );
-	--print( debug.traceback() );
 	error();
 end
 
@@ -200,9 +199,9 @@ function import( fname, base_dir )
 end
 
 function get_config_dir( platform, configuration )
-	if ( platform == nil or configuration == nil ) then
-		throw( "get_config_dir: too few arguments." );
+	if platform == nil or configuration == nil then
+		throw( "get_config_dir: too few arguments." )
 	end
 
-	return _OPTIONS[ "to" ] .. "/" .. platform .. "/" .. configuration;
+	return _OPTIONS[ "to" ] .. "/" .. platform .. "/" .. configuration
 end

@@ -1,22 +1,9 @@
 newoption{ trigger = "script", description = "Script to load" };
-newoption{ trigger = "to", description = "Location for generated project files" };
 newoption{ trigger = "project", description = "Name of the Project" };
-
-if not _OPTIONS[ "to" ] then
-	error("No 'to' option specified.")
-end
 
 if not _OPTIONS["script"] then
 	error("No script specified.")
 end
-
-global_configuration = {
-	scripts_path = path.getabsolute( path.getdirectory( _SCRIPT ) ),
-	root_path = path.getabsolute( path.join( path.getdirectory( _SCRIPT ), "../../../" ) )
-}
-
-dofile( path.join( global_configuration.scripts_path, "thirdparty/datadumper.lua" ) );
-dofile( path.join( global_configuration.scripts_path, "functions.lua" ) );
 
 function is_build_required( source_file, target_file )
 	if not source_file then
