@@ -5,6 +5,7 @@ Module = class{
 	import_func = nil,
 	config = nil,
 	module_dependencies = {},
+	external_dependencies = {},
 	source_files = {},
 	exclude_files = {},
 	optional_files = {},
@@ -26,7 +27,7 @@ end
 
 function add_module_include_path( include_path )
 	if path.isabsolute( include_path ) then
-		throw( "add_module_include_path: Please use relative pathes"  )
+		throw( "Please use relative pathes for module include pathes."  )
 	end
 	
 	local module_include_path = path.getabsolute( path.join( path.getdirectory( _SCRIPT ), include_path ) )
@@ -94,7 +95,7 @@ function find_module( module_name, importer_name )
 		print( include_path )
 	end
 	
-	local error_text = "[find_module] Module with name '" .. module_name .. "' not found."
+	local error_text = "Module with name '" .. module_name .. "' not found."
 	if ( importer_name ) then
 		error_text = error_text .. " Imported by " .. importer_name .. "!"
 	end
@@ -188,14 +189,22 @@ end
 
 function Module:add_dependency( module_name )
 	if not type( module_name ) == "string" then
-		throw( "[Module:add_dependency] module_name is not a valid string." )		
+		throw( "module_name of a dependency must be a valid string." )		
 	end
 
 	table.insert( self.module_dependencies, module_name )
 end
 
+function Module:add_external( url )
+	if not type( url ) == "string" then
+		throw( "url of a external dependency must be a valid string." )		
+	end
+
+	table.insert( self.external_dependencies, url )
+end
+
 function Module:resolve_dependency( target_list )
-	for i,module_name in pairs( self.module_dependencies ) do
+	for _, module_name in ipairs( self.module_dependencies ) do
 		local module = find_module( module_name, self.name )
 
 		if not table.contains( target_list, module ) then
@@ -203,113 +212,128 @@ function Module:resolve_dependency( target_list )
 			module:resolve_dependency( target_list )
 		end		
 	end
+	
+	for _, url in ipairs( self.external_dependencies ) do
+		local module = find_external_module( url )
+		
+		if not table.contains( target_list, module ) then
+			table.insert( target_list, module )
+			module:resolve_dependency( target_list )
+		end	
+	end
 end
 
-function Module:finalize_module( config, configuration, platform, project, solution )
-	if configuration == nil and platform == nil then
-		if self.import_func ~= nil and type( self.import_func ) == "function" then
-			self.import_func( project, solution )
+function Module:finalize_files( project )
+	local all_files = {}
+	for _,pattern in pairs( self.source_files ) do
+		local matches = os.matchfiles( pattern )
+		
+		if #matches == 0 then
+			throw( pattern .. "' pattern in '" .. self.name .. "' matches no files." )
 		end
 		
-		local all_files = {}
-		for _,pattern in pairs( self.source_files ) do
-			local matches = os.matchfiles( pattern )
-			
-			if #matches == 0 then
-				throw( pattern .. "' pattern in '" .. self.name .. "' matches no files." )
+		for j, file_name in pairs( matches ) do
+			if not io.exists( file_name ) then
+				throw("[finalize] '" .. file_name .. "'  in '" .. self.name .. "' don't exists.")
 			end
 			
-			for j, file_name in pairs( matches ) do
-				if not io.exists( file_name ) then
-					throw("[finalize] '" .. file_name .. "'  in '" .. self.name .. "' don't exists.")
-				end
-				
-				if not table.contains( all_files, file_name ) then
-					all_files[#all_files+1] = file_name
-				end					
-			end
+			if not table.contains( all_files, file_name ) then
+				all_files[#all_files+1] = file_name
+			end					
 		end
-		
-		for _,pattern in pairs( self.optional_files ) do
-			local matches = ""
-			if path.isabsolute( pattern ) then
-				matches = { pattern }
-			else
-				matches = os.matchfiles( pattern )
-			end
-		
-			for _,file_name in pairs( matches ) do
-				if not table.contains( all_files, file_name ) then
-					all_files[#all_files+1] = file_name
-				end					
-			end
-		end
-		
-		for _,pattern in pairs( self.exclude_files ) do
-			local matches = os.matchfiles( pattern )
-			
-			for j,file_name in pairs( matches ) do
-				local index = table.index_of( all_files, file_name )
-				
-				while index >= 0 do
-					table.remove( all_files, index )
-				
-					index = table.index_of( all_files, file_name )
-				end
-			end
-		end
-
-		if tiki.enable_unity_builds and ( self.module_type == ModuleTypes.UnityCppModule or self.module_type == ModuleTypes.UnityCModule ) then
-			local ext = "cpp"
-			if self.module_type == ModuleTypes.UnityCModule then
-				ext = "c"
-			end
-			
-			local unity_file_name = path.join( _OPTIONS[ "generated_files_dir" ], self.name .. "_unity." .. ext )			
-			local c = {}
-			c[#c+1] = "// Unity file created by GENie"
-			c[#c+1] = ""
-			c[#c+1] = "#define TIKI_CURRENT_MODULE \"" .. self.name .. "\""
-			c[#c+1] = ""
-			for i,file_name in pairs( all_files ) do
-				if path.iscppfile( file_name ) then
-					local relative_file_name = path.getrelative( _OPTIONS[ "generated_files_dir" ], file_name )
-					c[#c+1] = string.format( "#include \"%s\"", relative_file_name )
-				end
-			end
-			local unity_content = table.concat( c, "\n" )
-
-			files( all_files )
-			excludes( all_files )
-			
-			if _ACTION ~= "targets" then
-				local create_unity = true
-				if os.isfile( unity_file_name ) then
-					local unity_file = io.open( unity_file_name, "r" )
-					if unity_file ~= nil then
-						local unity_current_content = unity_file:read("*all")
-						if unity_current_content == unity_content then
-							create_unity = false
-						end					
-						unity_file:close()
-					end
-				end
-				
-				if create_unity then
-					print( "Create Unity file: " .. path.getbasename( unity_file_name ) .. "." .. ext )
-					local unity_file = io.open( unity_file_name, "w" )
-					if unity_file ~= nil then
-						unity_file:write( unity_content )
-						unity_file:close()
-					end
-				end
-			end
-			
-			files( { unity_file_name } )
+	end
+	
+	for _,pattern in pairs( self.optional_files ) do
+		local matches = ""
+		if path.isabsolute( pattern ) then
+			matches = { pattern }
 		else
-			files( all_files )
+			matches = os.matchfiles( pattern )
+		end
+	
+		for _,file_name in pairs( matches ) do
+			if not table.contains( all_files, file_name ) then
+				all_files[#all_files+1] = file_name
+			end					
+		end
+	end
+	
+	for _,pattern in pairs( self.exclude_files ) do
+		local matches = os.matchfiles( pattern )
+		
+		for j,file_name in pairs( matches ) do
+			local index = table.index_of( all_files, file_name )
+			
+			while index >= 0 do
+				table.remove( all_files, index )
+			
+				index = table.index_of( all_files, file_name )
+			end
 		end
 	end
 
+	if tiki.enable_unity_builds and ( self.module_type == ModuleTypes.UnityCppModule or self.module_type == ModuleTypes.UnityCModule ) then
+		local ext = "cpp"
+		if self.module_type == ModuleTypes.UnityCModule then
+			ext = "c"
+		end
+		
+		local unity_file_name = path.join( project.generated_files_dir, self.name .. "_unity." .. ext )			
+		local c = {}
+		c[#c+1] = "// Unity file created by GENie"
+		c[#c+1] = ""
+		c[#c+1] = "#define TIKI_CURRENT_MODULE \"" .. self.name .. "\""
+		c[#c+1] = ""
+		for i,file_name in pairs( all_files ) do
+			if path.iscppfile( file_name ) then
+				local relative_file_name = path.getrelative( project.generated_files_dir, file_name )
+				c[#c+1] = string.format( "#include \"%s\"", relative_file_name )
+			end
+		end
+		local unity_content = table.concat( c, "\n" )
+
+		files( all_files )
+		excludes( all_files )
+		
+		if _ACTION ~= "targets" then
+			local create_unity = true
+			if os.isfile( unity_file_name ) then
+				local unity_file = io.open( unity_file_name, "r" )
+				if unity_file ~= nil then
+					local unity_current_content = unity_file:read("*all")
+					if unity_current_content == unity_content then
+						create_unity = false
+					end					
+					unity_file:close()
+				end
+			end
+			
+			if create_unity then
+				print( "Create Unity file: " .. path.getbasename( unity_file_name ) .. "." .. ext )
+				local unity_file = io.open( unity_file_name, "w" )
+				if unity_file ~= nil then
+					unity_file:write( unity_content )
+					unity_file:close()
+				end
+			end
+		end
+		
+		files( { unity_file_name } )
+	else
+		files( all_files )
+	end
+end
+
+function Module:finalize(  config, project, solution )
+	if self.import_func ~= nil and type( self.import_func ) == "function" then
+		self.import_func( project, solution )
+	end
+	
+	self:finalize_files( project )
+	
+	self.config:get_config( nil, nil ):apply_configuration( config )
+end
+
+function Module:finalize_configuration( config, configuration, platform )
 	self.config:get_config( configuration, platform ):apply_configuration( config )
 end

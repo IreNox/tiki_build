@@ -1,5 +1,18 @@
 
-newoption { trigger = "generated_files_dir", description = "" }
+-- TODO:
+--SolutionConfigurations = {
+--	Debug		= 0,
+--	Profile		= 1,
+--	Release		= 2,
+--	Master		= 3
+--}
+--
+--SolutionPlatforms = {
+--	x86,
+--	x64,
+--	ARM,
+--	ARM64
+--}
 
 Solution = class{
 	name = nil,
@@ -57,6 +70,11 @@ function Solution:finalize()
 	configurations( var_configurations )
 	platforms( var_platforms )
 	location( _OPTIONS[ "to" ] )
+	
+	if not os.isdir( _OPTIONS[ "to" ] ) then
+		print( "Create:" .. _OPTIONS[ "to" ] )
+		os.mkdir( _OPTIONS[ "to" ] )
+	end
 
 	while #self.projects > 0 do
 		local project = self.projects[ next( self.projects ) ]
@@ -64,12 +82,7 @@ function Solution:finalize()
 			print( "Project: " .. project.name )
 		end
 
-		_OPTIONS[ "generated_files_dir" ] = path.getabsolute( path.join( _OPTIONS[ "to" ], "generated_files", project.name ) )
-		if not os.isdir( _OPTIONS[ "generated_files_dir" ] ) then
-			os.mkdir( _OPTIONS[ "generated_files_dir" ] )
-		end
-
-		project:finalize_project( _OPTIONS[ "to" ], self )
+		project:finalize_project( self )
 		table.remove_value( self.projects, project )
 	end
 	

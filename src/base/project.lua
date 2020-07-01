@@ -18,7 +18,8 @@ Project = class{
 	module = nil,
 	buildoptions = nil,
 	platforms = {},
-	configurations = {}
+	configurations = {},
+	generated_files_dir = ''
 }
 
 global_project_storage = {}
@@ -34,22 +35,22 @@ function find_project( project_name )
 	return nil
 end
 
-function Project:new( name, platforms, configurations, projectType )
+function Project:new( name, platforms, configurations, project_type )
 	if not name then 
-		throw( "[Project:new] No project name given." )
+		throw( "No Project name given." )
 	end
 
-	if ( type( platforms ) ~= "table" or type( configurations ) ~= "table" ) then 
-		throw( "[Project:new] platforms or configurations are invalid. Please provide an array." )
+	if type( platforms ) ~= "table" or type( configurations ) ~= "table" then 
+		throw( "Invalid Project platforms or configurations. Please provide an array." )
 	end
 
-	if not projectType then 
-		throw( "[Project:new] type is invalid. Please use the ProjectTypes enum." )
+	if not project_type then 
+		throw( "Invalid Project type. Please use the ProjectTypes enum." )
 	end
 
 	local project_new = class_instance( self )
 	project_new.name			= name
-	project_new.type			= projectType
+	project_new.type			= project_type
 	project_new.module			= Module:new( name )
 	project_new.configurations	= configurations
 	project_new.platforms		= platforms
@@ -107,6 +108,11 @@ function Project:add_dependency( module_name )
 	self.module:add_dependency( module_name )
 end
 
+function Project:add_external( url )
+	self.module:add_external( url )
+end
+
+
 function Project:add_install( pattern, target_path, configuration, platform )
 	local config = self.module.config:get_config( configuration, platform )
 	
@@ -119,22 +125,23 @@ function Project:add_install( pattern, target_path, configuration, platform )
 	config:add_post_build_step( step_script, step_data )
 end
 
-function Project:finalize_create_directories( project_pathes, configuration, platform )
-	project_pathes.root_dir = _OPTIONS[ "to" ]
-	if not os.isdir( project_pathes.root_dir ) then
-		os.mkdir( project_pathes.root_dir )
+function Project:finalize_create_directories()
+	self.generated_files_dir = path.join( root_dir, tiki.generated_files_dir, self.name )
+	if not os.isdir( self.generated_files_dir ) then
+		print( "Create:" .. self.generated_files_dir )
+		os.mkdir( self.generated_files_dir )
 	end
+end
 
-	project_pathes.build_dir = get_config_dir( platform, configuration )
-	if not os.isdir( project_pathes.build_dir ) then
-		os.mkdir( project_pathes.build_dir )
+function Project:finalize_create_configuration_directories( configuration, platform )
+	local build_dir = get_config_dir( platform, configuration )
+	
+	if not os.isdir( build_dir ) then
+		print( "Create:" .. build_dir )
+		os.mkdir( build_dir )
 	end
 	
-	project_pathes.generated_files_dir = path.join( project_pathes.root_dir, "generated_files", self.name )
-	if not os.isdir( project_pathes.generated_files_dir ) then
-		print( "Create:" .. project_pathes.generated_files_dir )
-		os.mkdir( project_pathes.generated_files_dir )
-	end
+	return build_dir
 end
 
 function Project:finalize_binary( config )
@@ -184,26 +191,26 @@ function Project:finalize_config( config )
 	end
 end
 
-function Project:finalize_build_steps( config, project_pathes, project_name )
+function Project:finalize_build_steps( config, build_dir )
 	if #config.pre_build_steps == 0 and #config.post_build_steps == 0 then
 		-- no build actions
 		return
 	end
 	
 	local genie_exe = global_configuration.genie_path:gsub( "/", "\\" )
-	local relative_build_dir = path.getrelative( project_pathes.root_dir, project_pathes.build_dir )
+	local relative_build_dir = path.getrelative( _OPTIONS[ "to" ], build_dir )
 
-	local global_filename = path.join( project_pathes.root_dir, "genie.lua" )
+	local global_filename = path.join( _OPTIONS[ "to" ], "genie.lua" )
 	local global_file = io.open( global_filename, "w" )
 	if global_file ~= nil then
-		local script_path = path.getrelative( project_pathes.root_dir, path.join( global_configuration.scripts_path, "buildsteps.lua" ) )
+		local script_path = path.getrelative( _OPTIONS[ "to" ], path.join( global_configuration.scripts_path, "buildsteps.lua" ) )
 		global_file:write( "dofile( \"" .. script_path .. "\" )" )
 		global_file:close()
 	end
 	
 	if #config.pre_build_steps > 0 then
-		local pre_build_steps_filename = "pre_build_steps_" .. project_name .. ".lua"
-		local pre_build_steps_path = path.join( project_pathes.build_dir, pre_build_steps_filename )
+		local pre_build_steps_filename = "pre_build_steps_" .. self.name .. ".lua"
+		local pre_build_steps_path = path.join( build_dir, pre_build_steps_filename )
 		local pre_build_steps_file = io.open( pre_build_steps_path, "w" )
 		if pre_build_steps_file ~= nil then
 			pre_build_steps_file:write( DataDumper( config.pre_build_steps ) )
@@ -222,8 +229,8 @@ function Project:finalize_build_steps( config, project_pathes, project_name )
 	end
 
 	if #config.post_build_steps > 0 then
-		local post_build_steps_filename = "post_build_steps_" .. project_name .. ".lua"
-		local post_build_steps_path = path.join( project_pathes.build_dir, post_build_steps_filename )
+		local post_build_steps_filename = "post_build_steps_" .. self.name .. ".lua"
+		local post_build_steps_path = path.join( build_dir, post_build_steps_filename )
 		local post_build_steps_file = io.open( post_build_steps_path, "w" )
 		if post_build_steps_file ~= nil then		
 			post_build_steps_file:write( DataDumper( config.post_build_steps ) )
@@ -242,7 +249,7 @@ function Project:finalize_build_steps( config, project_pathes, project_name )
 	end
 end
 
-function Project:finalize_project( target_path, solution )
+function Project:finalize_project( solution )
 	project( self.name )
 	--uuid( self.uuid )
 	kind( self.type )
@@ -251,6 +258,8 @@ function Project:finalize_project( target_path, solution )
 	if self.buildoptions then
 		buildoptions( self.buildoptions )
 	end
+	
+	self:finalize_create_directories()
 	
 	local config_project = Configuration:new()
 	if self.lang == ProjectLanguages.cpp then
@@ -265,10 +274,10 @@ function Project:finalize_project( target_path, solution )
 
 	local modules = {}
 	self.module:resolve_dependency( modules )
-	self.module:finalize_module( config_project, nil, nil, self, solution )
+	self.module:finalize( config_project, self, solution )
 	
 	for _,cur_module in pairs( modules ) do
-		cur_module:finalize_module( config_project, nil, nil, self, solution )
+		cur_module:finalize( config_project, self, solution )
 	end
 
 	local config_platform = {}
@@ -278,9 +287,9 @@ function Project:finalize_project( target_path, solution )
 
 		config_platform[ build_platform ] = Configuration:new()
 
-		self.module:finalize_module( config_platform[ build_platform ], nil, build_platform, self, solution )
+		self.module:finalize_configuration( config_platform[ build_platform ], nil, build_platform )
 		for j,cur_module in pairs( modules ) do
-			cur_module:finalize_module( config_platform[ build_platform ], nil, build_platform, self, solution )
+			cur_module:finalize_configuration( config_platform[ build_platform ], nil, build_platform )
 		end
 	end
 
@@ -291,9 +300,9 @@ function Project:finalize_project( target_path, solution )
 
 		config_configuration[ build_config ] = Configuration:new()
 
-		self.module:finalize_module( config_configuration[ build_config ], build_config, nil, self, solution )
+		self.module:finalize_configuration( config_configuration[ build_config ], build_config, nil )
 		for j,cur_module in pairs( modules ) do
-			cur_module:finalize_module( config_configuration[ build_config ], build_config, nil, self, solution )
+			cur_module:finalize_configuration( config_configuration[ build_config ], build_config, nil )
 		end
 	end
 
@@ -304,31 +313,31 @@ function Project:finalize_project( target_path, solution )
 			end
 			configuration{ build_platform, build_config }
 
-			project_pathes = {}
+			local build_dir = ''
 			if _ACTION ~= "targets" then
-				self:finalize_create_directories( project_pathes, build_config, build_platform )
+				build_dir = self:finalize_create_configuration_directories( build_config, build_platform )
+
+				targetdir( build_dir )
+				debugdir( build_dir )
+				objdir( path.join( build_dir, "obj" ) )
 			end
 
-			targetdir( project_pathes.build_dir )
-			debugdir( project_pathes.build_dir )
-			objdir( path.join( project_pathes.build_dir, "obj" ) )
-		
 			local config = Configuration:new()
 
-			self.module:finalize_module( config, build_config, build_platform, self, solution )
+			self.module:finalize_configuration( config, build_config, build_platform )
 			for k,cur_module in pairs( modules ) do
-				cur_module:finalize_module( config, build_config, build_platform, self, solution )
+				cur_module:finalize_configuration( config, build_config, build_platform )
 			end	
 			
 			config_project:apply_configuration( config )
 			config_platform[ build_platform ]:apply_configuration( config )
 			config_configuration[ build_config ]:apply_configuration( config )
 			
-			self:finalize_binary( config, project_pathes.build_dir )
+			self:finalize_binary( config, build_dir )
 			self:finalize_config( config )
 			
 			if _ACTION ~= "targets" then
-				self:finalize_build_steps( config, project_pathes, self.name )
+				self:finalize_build_steps( config, build_dir )
 			end
 		end
 	end
