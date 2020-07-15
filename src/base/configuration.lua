@@ -23,9 +23,9 @@ function Configuration:set_define( name, value )
 	end
 end
 
-function Configuration:checkBasePath( basePath )
-	if type( basePath ) ~= "string" then
-		throw "[Configuration:checkBasePath] too few arguments.";
+function Configuration:check_base_path( base_path )
+	if type( base_path ) ~= "string" then
+		throw( "not base_path. too few arguments." )
 	end
 end
 
@@ -34,17 +34,17 @@ function Configuration:set_flag( name )
 end
 
 function Configuration:add_binary_dir( binary_dir, basePath )
-	self:checkBasePath( basePath );
+	self:check_base_path( basePath );
 	table.insert( self.binary_dirs, path.join( basePath, binary_dir ) );
 end
 
 function Configuration:add_include_dir( include_dir, basePath )
-	self:checkBasePath( basePath );
+	self:check_base_path( basePath );
 	table.insert( self.include_dirs, path.join( basePath, include_dir ) );
 end
 
 function Configuration:add_library_dir( library_dir, basePath )
-	self:checkBasePath( basePath );
+	self:check_base_path( basePath );
 	table.insert( self.library_dirs, path.join( basePath, library_dir ) );
 end
 
@@ -82,7 +82,7 @@ end
 
 PlatformConfiguration = class{
 	base_path = "",
-	globalConfig = nil,
+	global_config = nil,
 	platforms = {},
 	configurations = {},
 	platformConfigurations = {} 
@@ -92,7 +92,7 @@ function PlatformConfiguration:new()
 	local platformconfiguration_new = class_instance( self );
 
 	platformconfiguration_new.base_path		= os.getcwd();
-	platformconfiguration_new.globalConfig	= Configuration:new();
+	platformconfiguration_new.global_config	= Configuration:new();
 
 	return platformconfiguration_new;
 end
@@ -124,14 +124,18 @@ function PlatformConfiguration:get_config( configuration, platform )
 
 		return self.platforms[ platform ];
 	else
-		return self.globalConfig;
+		return self.global_config;
 	end
 
 	return nil;
 end
 
 function PlatformConfiguration:set_base_path( base_path )
-	self.base_path = path.join( global_configuration.root_path, base_path );
+	if path.isabsolute( base_path ) then
+		self.base_path = base_path;
+	else
+		self.base_path = path.join( tiki.root_path, base_path );
+	end
 end
 
 function PlatformConfiguration:set_define( name, value, configuration, platform )

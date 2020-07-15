@@ -126,7 +126,7 @@ function Project:add_install( pattern, target_path, configuration, platform )
 end
 
 function Project:finalize_create_directories()
-	self.generated_files_dir = path.join( root_dir, tiki.generated_files_dir, self.name )
+	self.generated_files_dir = path.join( _OPTIONS[ "to" ], tiki.generated_files_dir, self.name )
 	if not os.isdir( self.generated_files_dir ) then
 		print( "Create:" .. self.generated_files_dir )
 		os.mkdir( self.generated_files_dir )

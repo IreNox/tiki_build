@@ -1,7 +1,7 @@
 
 function throw( text )
-	print( "Exception: " .. text )
-	error()
+	print( debug.traceback() )
+	error( text )
 end
 
 function iff( expr, when_true, when_false )

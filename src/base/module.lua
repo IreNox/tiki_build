@@ -224,6 +224,8 @@ function Module:resolve_dependency( target_list )
 end
 
 function Module:finalize_files( project )
+	local is_unity_module = tiki.enable_unity_builds and (self.module_type == ModuleTypes.UnityCppModule or self.module_type == ModuleTypes.UnityCModule)
+
 	local all_files = {}
 	for _,pattern in pairs( self.source_files ) do
 		local matches = os.matchfiles( pattern )
@@ -272,12 +274,14 @@ function Module:finalize_files( project )
 		end
 	end
 
-	if tiki.enable_unity_builds and ( self.module_type == ModuleTypes.UnityCppModule or self.module_type == ModuleTypes.UnityCModule ) then
-		local ext = "cpp"
-		if self.module_type == ModuleTypes.UnityCModule then
-			ext = "c"
-		end
-		
+	if is_unity_module then
+		configuration( "Project" )
+	end
+	files( all_files )
+	configuration{}
+
+	if is_unity_module then
+		local ext = iff( self.module_type == ModuleTypes.UnityCModule, "c", "cpp" )		
 		local unity_file_name = path.join( project.generated_files_dir, self.name .. "_unity." .. ext )			
 		local c = {}
 		c[#c+1] = "// Unity file created by GENie"
@@ -292,8 +296,7 @@ function Module:finalize_files( project )
 		end
 		local unity_content = table.concat( c, "\n" )
 
-		files( all_files )
-		excludes( all_files )
+		--excludes( all_files )
 		
 		if _ACTION ~= "targets" then
 			local create_unity = true
@@ -319,8 +322,6 @@ function Module:finalize_files( project )
 		end
 		
 		files( { unity_file_name } )
-	else
-		files( all_files )
 	end
 end
 

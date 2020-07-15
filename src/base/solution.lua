@@ -64,11 +64,12 @@ function Solution:finalize()
 			end
 		end
 	end
-	--table.insert( var_configurations, 'Project' )
+	table.insert( var_configurations, 'Project' )
 	
-	solution( self.name )
+	workspace( self.name )
 	configurations( var_configurations )
 	platforms( var_platforms )
+	systemversion( "latest" )
 	location( _OPTIONS[ "to" ] )
 	
 	if not os.isdir( _OPTIONS[ "to" ] ) then
@@ -86,18 +87,17 @@ function Solution:finalize()
 		table.remove_value( self.projects, project )
 	end
 	
-	--local genie_exe = global_configuration.genie_path
-	--configuration{ 'Project' }
-	--kind( 'Makefile' )
-	--buildcommands{ 'cd ..\\project', genie_exe .. ' --to=../build ' .. _ACTION }
+	configuration{ "Project" }
+	kind( "Makefile" )
+	buildcommands{ _PREMAKE_COMMAND .. " /scripts=.. /to=" .. _OPTIONS[ "to" ] .. " " .. _ACTION }
 end
 
 function finalize_solution( ... )
 	local projects = {...}
 
 	local source = debug.getinfo( 2 ).source
-	local name = source:match( "([^/]+)/genie.lua$" )
-
+	local name = source:match( "([^/]+)/premake5.lua$" )
+	
 	local solution = Solution:new( name )
 	
 	for _, project in ipairs( projects ) do

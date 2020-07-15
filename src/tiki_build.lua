@@ -4,7 +4,7 @@
 local script_path = path.getabsolute( path.getdirectory( _SCRIPT ) )
 
 tiki = {
-	root_path = path.getabsolute( path.join( script_path, '..' ) )
+	root_path = path.getabsolute( script_path )
 }
 
 local scripts  = dofile( script_path .. "/_manifest.lua" )

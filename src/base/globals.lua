@@ -31,11 +31,12 @@ if not tiki.externals_dir then
 	tiki.externals_dir = 'externals'
 end
 
-if os.get() == "windows" then
+local hostOs = os.host();
+if hostOs == "windows" then
 	tiki.platform = Platforms.Windows
-elseif os.get() == "bsd" or os.get() == "linux" or os.get() == "solaris" then
+elseif hostOs == "bsd" or hostOs == "linux" or hostOs == "solaris" then
 	tiki.platform = Platforms.Linux
-elseif os.get() == "macosx" then
+elseif hostOs == "macosx" then
 	tiki.platform = Platforms.MacOS
 else
 	tiki.platform = Platforms.Unknown

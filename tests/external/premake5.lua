@@ -1,12 +1,12 @@
--- tests/basic_app
+-- tests/external
 
-dofile( "../../tiki_build.lua" )
+--dofile( "../../tiki_build.lua" )
 
 local project = Project:new(
-	"box2d_test",
+	"external_test",
 	{ "x32", "x64" },
 	{ "Debug", "Release" },
-	ProjectTypes.WindowApplication
+	ProjectTypes.ConsoleApplication
 );
 
 project:add_files( 'src/*.cpp' )
