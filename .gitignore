@@ -1,3 +1,2 @@
-/genie.exe
 /premake5.exe
-build
+build/

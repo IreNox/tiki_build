@@ -33,19 +33,19 @@ function Configuration:set_flag( name )
 	table.insert( self.flags, name );
 end
 
-function Configuration:add_binary_dir( binary_dir, basePath )
-	self:check_base_path( basePath );
-	table.insert( self.binary_dirs, path.join( basePath, binary_dir ) );
+function Configuration:add_binary_dir( binary_dir, base_path )
+	self:check_base_path( base_path );
+	table.insert( self.binary_dirs, path.join( base_path, binary_dir ) );
 end
 
-function Configuration:add_include_dir( include_dir, basePath )
-	self:check_base_path( basePath );
-	table.insert( self.include_dirs, path.join( basePath, include_dir ) );
+function Configuration:add_include_dir( include_dir, base_path )
+	self:check_base_path( base_path );
+	table.insert( self.include_dirs, path.join( base_path, include_dir ) );
 end
 
-function Configuration:add_library_dir( library_dir, basePath )
-	self:check_base_path( basePath );
-	table.insert( self.library_dirs, path.join( basePath, library_dir ) );
+function Configuration:add_library_dir( library_dir, base_path )
+	self:check_base_path( base_path );
+	table.insert( self.library_dirs, path.join( base_path, library_dir ) );
 end
 
 function Configuration:add_binary_file( binary_filename )
@@ -90,9 +90,13 @@ PlatformConfiguration = class{
 
 function PlatformConfiguration:new()
 	local platformconfiguration_new = class_instance( self );
-
-	platformconfiguration_new.base_path		= os.getcwd();
 	platformconfiguration_new.global_config	= Configuration:new();
+
+	if tiki.external then
+		platformconfiguration_new.base_path		= tiki.external.export_path;
+	else
+		platformconfiguration_new.base_path		= os.getcwd();
+	end
 
 	return platformconfiguration_new;
 end

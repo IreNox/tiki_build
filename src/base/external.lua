@@ -7,9 +7,9 @@ ExternalTypes = {
 
 External = class{
 	url = nil,
-	url_type = nil,
-	url_name = nil,
-	url_version = nil,
+	type = nil,
+	version = nil,
+	file_path = nil,
 	export_path = nil,
 	import_file = nil,
 	import_func = nil,
@@ -20,25 +20,37 @@ global_external_storage = {}
 
 function External:new( url )
 	local external_new = class_instance( self )
-	external_new.url			= url
-	external_new.url_type		= url:match( '^(.*):' )
-	external_new.url_name		= url:match( ':(.*)@' ) or url:match( ':(.*)$' )
-	external_new.url_version	= url:match( '@(.*)$' )
+	external_new.url		= url:match( '(.*)@' ) or url:match( '(.*)$' )
+	external_new.version	= url:match( '@(.*)$' )
 	
-	if external_new.url_version == nil then
-		if external_new.url_type == ExternalTypes.SVN then
-			external_new.url_version = 'HEAD'
-		elseif external_new.url_type == ExternalTypes.Git then
-			external_new.url_version = 'master'
-		elseif external_new.url_type == ExternalTypes.Custom then
-			external_new.url_version = 'latest'
+	local file_path = external_new.url
+	file_path = file_path:gsub( ":", "" )
+	file_path = file_path:gsub( "//", "/" )
+	external_new.file_path = file_path
+
+	local url_protocol = url:match( '^(.*):' )
+	if url_protocol == "git" then
+		external_new.type = ExternalTypes.Git
+	elseif url_protocol == "https" and external_new.url:endswith( ".git" ) then
+		external_new.type = ExternalTypes.Git
+	elseif url_protocol == "svn" then
+		external_new.type = ExternalTypes.SVN
+	elseif url_protocol == "custom" then
+		external_new.type = ExternalTypes.Custom
+	else
+	   throw( "External type '" .. url_protocol .. "' used by '" .. url .. "' is not supported." )
+	end
+	
+	if external_new.version == nil then
+		if external_new.type == ExternalTypes.SVN then
+			external_new.version = 'HEAD'
+		elseif external_new.type == ExternalTypes.Git then
+			external_new.version = 'master'
+		elseif external_new.type == ExternalTypes.Custom then
+			external_new.version = 'latest'
 		end
 	end
 	
-	if not table.contains( ExternalTypes, external_new.url_type ) then
-	   throw( "External type '" .. external_new.url_type .. "' used by '" .. url .. "' is not supported." );
-	end
-
 	table.insert( global_external_storage, external_new )
 	
 	return external_new
@@ -83,9 +95,9 @@ end
 
 function External:export()
 	local externals_dir = path.getabsolute( path.join( _OPTIONS[ "to" ], tiki.externals_dir ) )
-	self.export_path = path.join( externals_dir, self.url_type, self.url_name )
+	self.export_path = path.join( externals_dir, self.file_path )
 	
-	if self.url_type == ExternalTypes.SVN then
+	if self.type == ExternalTypes.SVN then
 		self:check_svn()
 		
 		local exists = os.isdir( self.export_path )
@@ -100,20 +112,20 @@ function External:export()
 		end
 		
 		if not exists then
-			local command_line = tiki.svn_path .. " checkout svn://" .. self.url_name .. "@" .. self.url_version .. " " .. self.export_path
+			local command_line = tiki.svn_path .. " checkout " .. self.url .. "@" .. self.version .. " " .. self.export_path
 			local checkout_result = os.execute( command_line )
 			if checkout_result ~= 0 then
 				throw( "Failed to checkout '" .. self.url .. "' to '" .. self.export_path .. "' with exit code " .. checkout_result .. "." )
 			end			
 		end
-	elseif self.url_type == ExternalTypes.Git then
+	elseif self.type == ExternalTypes.Git then
 		local base_command_line = tiki.git_path .. " -C " .. self.export_path .. " "
 
 		self:check_git()
 		
 		local exists = os.isdir( self.export_path )
 		if exists then
-			print( "Check existants " .. self.url_name .."..." )
+			print( "Check existants " .. self.url .."..." )
 			local info_result = os.outputof( base_command_line .. "status -s" )
 			if not info_result then
 				exists = false
@@ -123,8 +135,8 @@ function External:export()
 		end
 		
 		if not exists then
-			print( "Clone " .. self.url_name .."..." )
-			local command_line = tiki.git_path .. " clone https://" .. self.url_name .. " " .. self.export_path
+			print( "Clone " .. self.url .."..." )
+			local command_line = tiki.git_path .. " clone " .. self.url .. " " .. self.export_path
 			local clone_result = os.execute( command_line )
 			if not clone_result then
 				throw( "Failed to clone '" .. self.url .. "' to '" .. self.export_path .. "'." )
@@ -132,23 +144,23 @@ function External:export()
 		end
 		
 		-- check status
-		print( "Get version of " .. self.url_name .."..." )
+		print( "Get version of " .. self.url .."..." )
 		local head = os.outputof( base_command_line .. "rev-parse --abbrev-ref HEAD" )
 		if head == "HEAD" then
 			head = os.outputof( base_command_line .. "rev-parse HEAD" )
 		end
 		
-		if head ~= self.url_version then
-			print( "Fetch " .. self.url_name .."..." )
+		if head ~= self.version then
+			print( "Fetch " .. self.url .."..." )
 			local fetch_result = os.execute( base_command_line .. "fetch" )
 			if not fetch_result then
 				throw( "Failed to fetch '" .. self.url .. "' in '" .. self.export_path .. "'." )
 			end
 
-			print( "Checkout " .. self.url_name .."..." )
-			local checkout_result = os.execute( base_command_line .. "checkout " .. self.url_version )
+			print( "Checkout " .. self.url .."..." )
+			local checkout_result = os.execute( base_command_line .. "checkout " .. self.version )
 			if not checkout_result then
-				throw( "Failed to checkout '" .. self.url_version .. "' for external '" .. self.url .. "'." )
+				throw( "Failed to checkout '" .. self.version .. "' for external '" .. self.url .. "'." )
 			end
 		end
 	end
@@ -157,7 +169,7 @@ end
 function External:load()
 	local import_file = path.join( self.export_path, "tiki.lua" )
 	if not os.isfile( import_file ) then
-		import_file = path.join( tiki.root_path, "external", self.url_type, self.url_name, "tiki.lua" )
+		import_file = path.join( tiki.root_path, "external", self.file_path, "tiki.lua" )
 	end
 
 	print( "Load Module from " .. import_file )
@@ -169,8 +181,16 @@ function External:load()
 	self.import_file = import_file
 	self.import_func = loadfile( import_file )
 	
-	external = self
-	self.module = self.import_func()
+	self.module = Module:new( self.file_path:gsub( "/", '_' ) )
+	self.module:set_base_path( self.export_path )
+
+	module = self.module
+	tiki.external = self
+	
+	self.import_func()
+	
+	tiki.external = nil
+	module = nil
 end
 
 function find_external_module( url )

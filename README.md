@@ -1,2 +1,2 @@
 # tiki_build
-Module extension for GENie
+Module extension for Premake

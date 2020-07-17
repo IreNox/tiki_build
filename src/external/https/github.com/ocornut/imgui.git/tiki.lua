@@ -1,0 +1,21 @@
+-- https/github.com/ocornut/imgui.git
+
+local imgui_project = Project:new(
+	"imgui",
+	{ "x32", "x64" },
+	{ "Debug", "Release" },
+	ProjectTypes.StaticLibrary
+);
+
+imgui_project:add_files( "*.h" );
+imgui_project:add_files( "imgui.cpp" );
+imgui_project:add_files( "imgui_draw.cpp" );
+imgui_project:add_files( "imgui_widgets.cpp" );
+--imgui_project:add_files( "imgui_demo.cpp" );
+
+module:add_library_file( "imgui" );
+module:add_include_dir( "." );
+
+module.import_func = function( project, solution )
+	solution:add_project( imgui_project );
+end

@@ -312,7 +312,7 @@ function Module:finalize_files( project )
 			end
 			
 			if create_unity then
-				print( "Create Unity file: " .. path.getbasename( unity_file_name ) .. "." .. ext )
+				print( "Create Unity file: " .. path.getname( unity_file_name ) )
 				local unity_file = io.open( unity_file_name, "w" )
 				if unity_file ~= nil then
 					unity_file:write( unity_content )
