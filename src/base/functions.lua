@@ -198,33 +198,34 @@ function import( fname, base_dir )
 	dofile( fileName )
 end
 
-function tiki.isfile( path )
-	if tiki.files[ path ] then
+function tiki.isfile( file_path )
+	if tiki.files[ file_path ] then
 		return true
 	end
 	
-	if os.isfile( path.join( tiki.root_path, path ) ) then
+	local local_path = path.join( tiki.root_path, file_path )
+	if os.isfile( local_path ) then
 		return true
 	end
 	
-	return os.isfile( path )
+	return os.isfile( file_path )
 end
 
-function tiki.loadfile( path )
-	if tiki.files[ path ] then
-		return (loadstring or load)( tiki.files[ path ] )
+function tiki.loadfile( file_path )
+	if tiki.files[ file_path ] then
+		return (loadstring or load)( tiki.files[ file_path ] )
 	end
 
-	local local_path = path.join( tiki.root_path, path )
+	local local_path = path.join( tiki.root_path, file_path )
 	if os.isfile( local_path ) then
 		return loadfile( local_path )
 	end
 	
-	return loadfile( path )
+	return loadfile( file_path )
 end
 
-function tiki.dofile( path )
-	local file_func = tiki.loadfile( path )
+function tiki.dofile( file_path )
+	local file_func = tiki.loadfile( file_path )
 	return file_func()
 end
 
