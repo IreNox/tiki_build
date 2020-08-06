@@ -198,6 +198,36 @@ function import( fname, base_dir )
 	dofile( fileName )
 end
 
+function tiki.isfile( path )
+	if tiki.files[ path ] then
+		return true
+	end
+	
+	if os.isfile( path.join( tiki.root_path, path ) ) then
+		return true
+	end
+	
+	return os.isfile( path )
+end
+
+function tiki.loadfile( path )
+	if tiki.files[ path ] then
+		return (loadstring or load)( tiki.files[ path ] )
+	end
+
+	local local_path = path.join( tiki.root_path, path )
+	if os.isfile( local_path ) then
+		return loadfile( local_path )
+	end
+	
+	return loadfile( path )
+end
+
+function tiki.dofile( path )
+	local file_func = tiki.loadfile( path )
+	return file_func()
+end
+
 function get_config_dir( platform, configuration )
 	if platform == nil or configuration == nil then
 		throw( "get_config_dir: too few arguments." )

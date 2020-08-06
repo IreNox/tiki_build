@@ -169,17 +169,17 @@ end
 function External:load()
 	local import_file = path.join( self.export_path, "tiki.lua" )
 	if not os.isfile( import_file ) then
-		import_file = path.join( tiki.root_path, "external", self.file_path, "tiki.lua" )
+		import_file = path.join( "externals", self.file_path, "tiki.lua" )
 	end
 
 	print( "Load Module from " .. import_file )
 
-	if not os.isfile( import_file ) then
+	if not tiki.isfile( import_file ) then
 		throw( "Could not find import file for '" .. self.url .. "'." )
 	end
 	
 	self.import_file = import_file
-	self.import_func = loadfile( import_file )
+	self.import_func = tiki.loadfile( import_file )
 	
 	self.module = Module:new( self.file_path:gsub( "/", '_' ) )
 	self.module:set_base_path( self.export_path )

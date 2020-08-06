@@ -11,6 +11,10 @@ if not tiki then
 	tiki = {}
 end
 
+if not tiki.files then
+	tiki.files = {}
+end
+
 if not tiki.root_path then
 	tiki.root_path = path.getabsolute( path.getdirectory( _SCRIPT ) )
 end

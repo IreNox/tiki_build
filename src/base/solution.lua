@@ -20,8 +20,8 @@ Solution = class{
 }
 
 function add_extension( name )
-	local script_path = path.join( global_configuration.scripts_path, "extensions/extension." .. name .. ".lua" )
-	dofile( script_path )
+	local script_path = "extensions/extension." .. name .. ".lua"
+	tiki.dofile( script_path )
 end
 
 function Solution:new( name )

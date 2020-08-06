@@ -47,7 +47,7 @@ function execute_build_steps()
 			throw( "Action script file not found at " .. action.script )
 		end
 	
-		local action_function = dofile( action.script )
+		local action_function = tiki.dofile( action.script )
 		if type( action_function ) ~= "function" then
 			throw( "Script in " .. action.script .. " doesn't contain a function." )
 		end

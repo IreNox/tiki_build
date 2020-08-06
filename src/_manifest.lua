@@ -1,8 +1,10 @@
 
--- List of all script files. Order is important!
-	
-	return
-	{
+-- Manifest to describe files for release
+
+return
+{
+	-- List of all script files. Order is important!
+	embeded = {
 		-- third pary
 		"third_party/datadumper.lua",
 	
@@ -16,4 +18,10 @@
 		"base/solution.lua",
 		"base/buildsteps.lua",
 		"base/targets.lua"
+	},
+	dynamic = {
+		"actions/**",
+		"extensions/**",
+		"externals/**"
 	}
+}

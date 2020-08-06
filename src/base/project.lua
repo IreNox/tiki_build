@@ -204,7 +204,7 @@ function Project:finalize_build_steps( config, build_dir )
 	local global_file = io.open( global_filename, "w" )
 	if global_file ~= nil then
 		local script_path = path.getrelative( _OPTIONS[ "to" ], path.join( global_configuration.scripts_path, "buildsteps.lua" ) )
-		global_file:write( "dofile( \"" .. script_path .. "\" )" )
+		global_file:write( "tiki.dofile( \"" .. script_path .. "\" )" )
 		global_file:close()
 	end
 	
