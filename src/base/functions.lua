@@ -212,16 +212,23 @@ function tiki.isfile( file_path )
 end
 
 function tiki.loadfile( file_path )
+	local file_func = nil
 	if tiki.files[ file_path ] then
-		return (loadstring or load)( tiki.files[ file_path ] )
-	end
-
-	local local_path = path.join( tiki.root_path, file_path )
-	if os.isfile( local_path ) then
-		return loadfile( local_path )
+		file_func = assert( (loadstring or load)( tiki.files[ file_path ] ) )
+	else
+		local local_path = path.join( tiki.root_path, file_path )
+		if os.isfile( local_path ) then
+			file_func = assert( loadfile( local_path ) )
+		else
+			file_func = assert( loadfile( file_path ) )
+		end
 	end
 	
-	return loadfile( file_path )
+	if not file_func then
+		throw( "Failed to load script file: " .. file_path )
+	end
+	
+	return file_func
 end
 
 function tiki.dofile( file_path )

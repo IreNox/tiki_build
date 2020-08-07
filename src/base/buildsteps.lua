@@ -1,5 +1,7 @@
-newoption{ trigger = "script", description = "Script to load" }
-newoption{ trigger = "project", description = "Name of the Project" }
+if _ACTION == 'buildsteps'
+	newoption{ trigger = "script", description = "Script to load" }
+	newoption{ trigger = "project", description = "Name of the Project" }
+end
 
 if _ACTION == 'buildsteps' and not _OPTIONS[ 'script' ] then
 	error("No script specified.")
@@ -43,7 +45,7 @@ function execute_build_steps()
 	
 	local build_actions = dofile( script_file )
 	for i, action in pairs( build_actions ) do
-		if not os.isfile( action.script )	then
+		if not tiki.isfile( action.script )	then
 			throw( "Action script file not found at " .. action.script )
 		end
 	
@@ -51,6 +53,8 @@ function execute_build_steps()
 		if type( action_function ) ~= "function" then
 			throw( "Script in " .. action.script .. " doesn't contain a function." )
 		end
+		
+		config.base_path = action.base_path
 		
 		action_function( action.data, config )
 	end

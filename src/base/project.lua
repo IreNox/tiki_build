@@ -76,20 +76,12 @@ function Project:set_flag( name, configuration, platform )
 	self.module:set_flag( name, configuration, platform )
 end
 
-function Project:add_binary_dir( binary_dir, configuration, platform )
-	self.module:add_binary_dir( binary_dir, configuration, platform )
-end
-
 function Project:add_include_dir( include_dir, configuration, platform )
 	self.module:add_include_dir( include_dir, configuration, platform )
 end
 
 function Project:add_library_dir( library_dir, configuration, platform )
 	self.module:add_library_dir( library_dir, configuration, platform )
-end
-
-function Project:add_binary_file( binary_filename, configuration, platform )
-	self.module:add_binary_file( binary_filename, configuration, platform )
 end
 
 function Project:add_library_file( library_filename, configuration, platform )
@@ -112,17 +104,15 @@ function Project:add_external( url )
 	self.module:add_external( url )
 end
 
-
 function Project:add_install( pattern, target_path, configuration, platform )
 	local config = self.module.config:get_config( configuration, platform )
 	
-	local step_script = path.join( global_configuration.scripts_path, "actions/install_binary.lua" )
 	local step_data = {
 		pattern = pattern,
 		target = target_path
 	}
 	
-	config:add_post_build_step( step_script, step_data )
+	config:add_post_build_step( "install_binary", step_data )
 end
 
 function Project:finalize_create_directories()
@@ -142,25 +132,6 @@ function Project:finalize_create_configuration_directories( configuration, platf
 	end
 	
 	return build_dir
-end
-
-function Project:finalize_binary( config )
-	for i,file in pairs( config.binary_files ) do
-		for j,dir in pairs( config.binary_dirs ) do
-			local fullpath = path.join( dir, file )
-
-			if os.isfile( fullpath ) then
-				local step_script = path.join( global_configuration.scripts_path, "actions/copy_binary.lua" )
-				local step_data = {
-					source = fullpath,
-					target = file
-				}
-				
-				config:add_post_build_step( step_script, step_data )
-				break
-			end
-		end
-	end
 end
 
 function Project:finalize_config( config )
@@ -192,22 +163,9 @@ function Project:finalize_config( config )
 end
 
 function Project:finalize_build_steps( config, build_dir )
-	if #config.pre_build_steps == 0 and #config.post_build_steps == 0 then
-		-- no build actions
-		return
-	end
-	
-	local genie_exe = global_configuration.genie_path:gsub( "/", "\\" )
 	local relative_build_dir = path.getrelative( _OPTIONS[ "to" ], build_dir )
+	local system_script = path.getrelative( _OPTIONS[ "to" ], path.join( tiki.root_path, "tiki_build.lua" ) )
 
-	local global_filename = path.join( _OPTIONS[ "to" ], "genie.lua" )
-	local global_file = io.open( global_filename, "w" )
-	if global_file ~= nil then
-		local script_path = path.getrelative( _OPTIONS[ "to" ], path.join( global_configuration.scripts_path, "buildsteps.lua" ) )
-		global_file:write( "tiki.dofile( \"" .. script_path .. "\" )" )
-		global_file:close()
-	end
-	
 	if #config.pre_build_steps > 0 then
 		local pre_build_steps_filename = "pre_build_steps_" .. self.name .. ".lua"
 		local pre_build_steps_path = path.join( build_dir, pre_build_steps_filename )
@@ -218,8 +176,9 @@ function Project:finalize_build_steps( config, build_dir )
 		end	
 		
 		local command_line = {
-			genie_exe,
+			_PREMAKE_COMMAND,
 			"--quiet",
+			"--systemscript=" .. system_script,
 			"--project=" .. self.name,
 			"--to=" .. relative_build_dir,
 			"--script=" .. path.join( relative_build_dir, pre_build_steps_filename ),
@@ -238,8 +197,9 @@ function Project:finalize_build_steps( config, build_dir )
 		end
 	
 		command_line = {
-			genie_exe,
+			_PREMAKE_COMMAND,
 			"--quiet",
+			"--systemscript=" .. system_script,
 			"--project=" .. self.name,
 			"--to=" .. relative_build_dir,
 			"--script=" .. path.join( relative_build_dir, post_build_steps_filename ),
@@ -333,7 +293,6 @@ function Project:finalize_project( solution )
 			config_platform[ build_platform ]:apply_configuration( config )
 			config_configuration[ build_config ]:apply_configuration( config )
 			
-			self:finalize_binary( config, build_dir )
 			self:finalize_config( config )
 			
 			if _ACTION ~= "targets" then

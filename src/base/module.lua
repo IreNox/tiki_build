@@ -159,20 +159,12 @@ function Module:set_flag( name, configuration, platform )
 	self.config:set_flag( name, configuration, platform )
 end
 
-function Module:add_binary_dir( binary_dir, configuration, platform )
-	self.config:add_binary_dir( binary_dir, configuration, platform )
-end
-
 function Module:add_include_dir( include_dir, configuration, platform )
 	self.config:add_include_dir( include_dir, configuration, platform )
 end
 
 function Module:add_library_dir( library_dir, configuration, platform )
 	self.config:add_library_dir( library_dir, configuration, platform )
-end
-
-function Module:add_binary_file( binary_filename, configuration, platform )
-	self.config:add_binary_file( binary_filename, configuration, platform )
 end
 
 function Module:add_library_file( library_filename, configuration, platform )

@@ -1,3 +1,4 @@
+newoption{ trigger = "quiet", description = "does nothing" }
 newoption{ trigger = "to", description = "Location for generated project files. Default: ./build" }
 
 Platforms = {

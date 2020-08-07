@@ -2,8 +2,6 @@
 Configuration = class{
 	defines = {},
 	flags = {},
-	binary_dirs = {},
-	binary_files = {},
 	include_dirs = {},
 	library_dirs = {},
 	library_files = {},
@@ -33,11 +31,6 @@ function Configuration:set_flag( name )
 	table.insert( self.flags, name );
 end
 
-function Configuration:add_binary_dir( binary_dir, base_path )
-	self:check_base_path( base_path );
-	table.insert( self.binary_dirs, path.join( base_path, binary_dir ) );
-end
-
 function Configuration:add_include_dir( include_dir, base_path )
 	self:check_base_path( base_path );
 	table.insert( self.include_dirs, path.join( base_path, include_dir ) );
@@ -48,20 +41,16 @@ function Configuration:add_library_dir( library_dir, base_path )
 	table.insert( self.library_dirs, path.join( base_path, library_dir ) );
 end
 
-function Configuration:add_binary_file( binary_filename )
-	table.insert( self.binary_files, binary_filename );
-end
-
 function Configuration:add_library_file( library_filename )
 	table.insert( self.library_files, library_filename );
 end
 
-function Configuration:add_pre_build_step( step_script, step_data )
-	table.insert( self.pre_build_steps, { script = step_script, data = step_data } );
+function Configuration:add_pre_build_step( step_script, step_data, step_base_path )
+	table.insert( self.pre_build_steps, { script = "actions/" .. step_script .. ".lua", base_path = step_base_path, data = step_data } );
 end
 
-function Configuration:add_post_build_step( step_script, step_data )
-	table.insert( self.post_build_steps, { script = step_script, data = step_data } );
+function Configuration:add_post_build_step( step_script, step_data, step_base_path )
+	table.insert( self.post_build_steps, { script = "actions/" .. step_script .. ".lua", base_path = step_base_path, data = step_data } );
 end
 
 function Configuration:apply_configuration( target )
@@ -158,14 +147,6 @@ function PlatformConfiguration:set_flag( name, configuration, platform )
 	end
 end
 
-function PlatformConfiguration:add_binary_dir( binary_dir, configuration, platform )
-	if type( binary_dir ) == "string" then
-		self:get_config( configuration, platform ):add_binary_dir( binary_dir, self.base_path );
-	else
-		throw "[add_binary_dir] Invalid args.";
-	end
-end
-
 function PlatformConfiguration:add_include_dir( include_dir, configuration, platform )
 	if type( include_dir ) == "string" then
 		self:get_config( configuration, platform ):add_include_dir( include_dir, self.base_path );
@@ -182,14 +163,6 @@ function PlatformConfiguration:add_library_dir( library_dir, configuration, plat
 	end
 end
 
-function PlatformConfiguration:add_binary_file( binary_filename, configuration, platform )
-	if type( binary_filename ) == "string" then
-		self:get_config( configuration, platform ):add_binary_file( binary_filename );
-	else
-		throw "[add_binary_file] Invalid args.";
-	end
-end
-
 function PlatformConfiguration:add_library_file( library_filename, configuration, platform )
 	if type( library_filename ) == "string" then
 		self:get_config( configuration, platform ):add_library_file( library_filename );
@@ -199,17 +172,17 @@ function PlatformConfiguration:add_library_file( library_filename, configuration
 end
 
 function PlatformConfiguration:add_pre_build_step( step_script, step_data, configuration, platform )
-	if type( step_script ) == "string" and type( step_data ) == "table" then
-		self:get_config( configuration, platform ):add_pre_build_step( step_script, step_data );
-	else
+	if type( step_script ) ~= "string" or type( step_data ) ~= "table" then
 		throw "[add_pre_build_step] Invalid args.";
 	end
+
+	self:get_config( configuration, platform ):add_pre_build_step( step_script, step_data, self.base_path );
 end
 
 function PlatformConfiguration:add_post_build_step( step_script, step_data, configuration, platform )
-	if type( step_script ) == "string" and type( step_data ) == "table" then
-		self:get_config( configuration, platform ):add_post_build_step( step_script, step_data );
-	else
+	if type( step_script ) ~= "string" or type( step_data ) ~= "table" then
 		throw "[add_post_build_step] Invalid args.";
 	end
+
+	self:get_config( configuration, platform ):add_post_build_step( step_script, step_data, self.base_path );
 end
