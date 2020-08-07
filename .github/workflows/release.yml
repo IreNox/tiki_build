@@ -41,7 +41,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.sha }}
+        tag_name: b${{ env.build_id }}
         release_name: Release ${{ env.build_id }}
         body: |
           Single script release of ${{ github.sha }}
