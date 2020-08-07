@@ -22,7 +22,7 @@ jobs:
       run: |
         cd premake
         make -f Bootstrap.mak linux 
-        cp bin/releae/premake5 ../tiki_build
+        cp bin/release/premake5 ../tiki_build/
         cd ..
 
     - name: Generate script
