@@ -16,13 +16,13 @@ jobs:
     - uses: actions/checkout@v2
       with:
         repository: 'premake/premake-core'
-        path: 'premake5'
+        path: 'premake'
     
     - name: Build Premake
       run: |
-        cd premake5
+        cd premake
         make -f Bootstrap.mak linux 
-        cp premake5 ../tiki_build
+        cp bin/premake5 ../tiki_build
         cd ..
 
     - name: Generate script
