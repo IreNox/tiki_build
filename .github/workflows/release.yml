@@ -11,12 +11,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        path: "tiki_build"
+        path: 'tiki_build'
         
     - uses: actions/checkout@v2
       with:
-        path: "premake"
-        repository: 'https://github.com/premake/premake-core.git'
+        path: 'premake'
+        repository: 'premake/premake-core'
     
     - name: Build Premake
       run: |
