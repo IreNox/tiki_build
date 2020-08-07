@@ -28,7 +28,7 @@ jobs:
     - name: Generate script
       run: |
         cd tiki_build
-        premake5 --file=scripts/premake5.lua release
+        ./premake5 --file=scripts/premake5.lua release
         cd ..
     
     - name: Create Release
