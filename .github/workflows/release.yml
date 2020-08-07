@@ -20,7 +20,7 @@ jobs:
     
     - name: Build Premake
       run: |
-        cd premake
+        cd premake5
         make -f Bootstrap.mak linux 
         cp premake5 ../tiki_build
         cd ..
