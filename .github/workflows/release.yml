@@ -15,8 +15,8 @@ jobs:
         
     - uses: actions/checkout@v2
       with:
-        path: 'premake'
         repository: 'premake/premake-core'
+        path: 'premake5'
     
     - name: Build Premake
       run: |
