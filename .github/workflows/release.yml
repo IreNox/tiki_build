@@ -29,6 +29,8 @@ jobs:
       run: |
         cd tiki_build
         ./premake5 --file=scripts/premake5.lua release
+        $build_id = $(git rev-list --count HEAD)
+        export build_id=$build_id
         cd ..
     
     - name: Create Release
@@ -38,9 +40,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        release_name: Release ${{ env.build_id }}
         body: |
-          Single script release of ${{ github.ref }}
+          Single script release of ${{ github.sha }}
         draft: false
         prerelease: false
 
