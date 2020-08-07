@@ -1,0 +1,29 @@
+name: Release Version
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: "tiki_build"
+        
+    - uses: actions/checkout@v2
+      with:
+        path: "premake"
+        repository: 'https://github.com/premake/premake-core.git'
+    
+    - name: Build Premake
+      run: |
+        cd premake
+        make -f Bootstrap.mak linux 
+        cp premake5 ../tiki_build
+        cd ..
+
+    - name: Generate script
+      run: premake5 --file=scripts/premake5.lua release
