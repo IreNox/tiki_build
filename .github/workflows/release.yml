@@ -29,7 +29,9 @@ jobs:
       run: |
         cd tiki_build
         ./premake5 --file=scripts/premake5.lua release
-        export build_id=$(git rev-list --count HEAD)
+        build_id=$(git rev-list --count HEAD)
+        echo "Script generation successful for build $build_id"
+        echo "::set-env name=build_id::$build_id"
         cd ..
     
     - name: Create Release
