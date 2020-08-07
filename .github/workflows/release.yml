@@ -29,8 +29,7 @@ jobs:
       run: |
         cd tiki_build
         ./premake5 --file=scripts/premake5.lua release
-        $build_id = $(git rev-list --count HEAD)
-        export build_id=$build_id
+        export build_id=$(git rev-list --count HEAD)
         cd ..
     
     - name: Create Release
