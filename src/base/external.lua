@@ -16,7 +16,7 @@ External = class{
 	module = nil
 }
 
-global_external_storage = {}
+local global_external_storage = {}
 
 function External:new( url )
 	local external_new = class_instance( self )
@@ -35,7 +35,7 @@ function External:new( url )
 		external_new.type = ExternalTypes.Git
 	elseif url_protocol == "svn" then
 		external_new.type = ExternalTypes.SVN
-	elseif url_protocol == "custom" then
+	elseif url_protocol == "https" then
 		external_new.type = ExternalTypes.Custom
 	else
 	   throw( "External type '" .. url_protocol .. "' used by '" .. url .. "' is not supported." )
@@ -98,70 +98,80 @@ function External:export()
 	self.export_path = path.join( externals_dir, self.file_path )
 	
 	if self.type == ExternalTypes.SVN then
-		self:check_svn()
-		
-		local exists = os.isdir( self.export_path )
-		if exists then
-			local command_line = tiki.svn_path .. " info " .. self.export_path
-			local info_result = os.execute( command_line )
-			if not info_result then
-				exists = false
-				print( "External " .. self.url .. " has a broken export at '" .. self.export_path .. "', so it will be reexported." )
-				os.rmdir( self.export_path )
-			end
-		end
-		
-		if not exists then
-			local command_line = tiki.svn_path .. " checkout " .. self.url .. "@" .. self.version .. " " .. self.export_path
-			local checkout_result = os.execute( command_line )
-			if checkout_result ~= 0 then
-				throw( "Failed to checkout '" .. self.url .. "' to '" .. self.export_path .. "' with exit code " .. checkout_result .. "." )
-			end			
-		end
+		self:export_svn()
 	elseif self.type == ExternalTypes.Git then
-		local base_command_line = tiki.git_path .. " -C " .. self.export_path .. " "
+		self:export_git()
+	else
+		os.mkdir( self.export_path )
+	end
+end
 
-		self:check_git()
-		
-		local exists = os.isdir( self.export_path )
-		if exists then
-			print( "Check existants " .. self.url .."..." )
-			local info_result = os.outputof( base_command_line .. "status -s" )
-			if not info_result then
-				exists = false
-				print( "External " .. self.url .. " has a broken export at '" .. self.export_path .. "', so it will be reexported." )
-				os.rmdir( self.export_path )
-			end
+function External:export_svn()
+	self:check_svn()
+	
+	local exists = os.isdir( self.export_path )
+	if exists then
+		local command_line = tiki.svn_path .. " info " .. self.export_path
+		local info_result = os.execute( command_line )
+		if not info_result then
+			exists = false
+			print( "External " .. self.url .. " has a broken export at '" .. self.export_path .. "', so it will be reexported." )
+			os.rmdir( self.export_path )
 		end
-		
-		if not exists then
-			print( "Clone " .. self.url .."..." )
-			local command_line = tiki.git_path .. " clone " .. self.url .. " " .. self.export_path
-			local clone_result = os.execute( command_line )
-			if not clone_result then
-				throw( "Failed to clone '" .. self.url .. "' to '" .. self.export_path .. "'." )
-			end
-		end
-		
-		-- check status
-		print( "Get version of " .. self.url .."..." )
-		local head = os.outputof( base_command_line .. "rev-parse --abbrev-ref HEAD" )
-		if head == "HEAD" then
-			head = os.outputof( base_command_line .. "rev-parse HEAD" )
-		end
-		
-		if head ~= self.version then
-			print( "Fetch " .. self.url .."..." )
-			local fetch_result = os.execute( base_command_line .. "fetch" )
-			if not fetch_result then
-				throw( "Failed to fetch '" .. self.url .. "' in '" .. self.export_path .. "'." )
-			end
+	end
+	
+	if not exists then
+		local command_line = tiki.svn_path .. " checkout " .. self.url .. "@" .. self.version .. " " .. self.export_path
+		local checkout_result = os.execute( command_line )
+		if checkout_result ~= 0 then
+			throw( "Failed to checkout '" .. self.url .. "' to '" .. self.export_path .. "' with exit code " .. checkout_result .. "." )
+		end			
+	end
+end
 
-			print( "Checkout " .. self.url .."..." )
-			local checkout_result = os.execute( base_command_line .. "checkout " .. self.version )
-			if not checkout_result then
-				throw( "Failed to checkout '" .. self.version .. "' for external '" .. self.url .. "'." )
-			end
+function External:export_git()
+	local base_command_line = tiki.git_path .. " -C " .. self.export_path .. " "
+
+	self:check_git()
+	
+	local exists = os.isdir( self.export_path )
+	if exists then
+		print( "Check existants " .. self.url .."..." )
+		local info_result = os.outputof( base_command_line .. "status -s" )
+		if not info_result then
+			exists = false
+			print( "External " .. self.url .. " has a broken export at '" .. self.export_path .. "', so it will be reexported." )
+			os.rmdir( self.export_path )
+		end
+	end
+	
+	if not exists then
+		print( "Clone " .. self.url .."..." )
+		local command_line = tiki.git_path .. " clone " .. self.url .. " " .. self.export_path
+		local clone_result = os.execute( command_line )
+		if not clone_result then
+			throw( "Failed to clone '" .. self.url .. "' to '" .. self.export_path .. "'." )
+		end
+	end
+	
+	-- check status
+	print( "Get version of " .. self.url .."..." )
+	local head = os.outputof( base_command_line .. "rev-parse --abbrev-ref HEAD" )
+	if head == "HEAD" then
+		head = os.outputof( base_command_line .. "rev-parse HEAD" )
+	end
+	
+	if head ~= self.version then
+		print( "Fetch " .. self.url .."..." )
+		local fetch_result = os.execute( base_command_line .. "fetch" )
+		if not fetch_result then
+			throw( "Failed to fetch '" .. self.url .. "' in '" .. self.export_path .. "'." )
+		end
+
+		print( "Checkout " .. self.url .."..." )
+		local checkout_result = os.execute( base_command_line .. "checkout " .. self.version )
+		if not checkout_result then
+			throw( "Failed to checkout '" .. self.version .. "' for external '" .. self.url .. "'." )
 		end
 	end
 end

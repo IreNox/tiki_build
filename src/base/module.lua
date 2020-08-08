@@ -12,9 +12,6 @@ Module = class{
 	stack_trace = ""
 }
 
-global_module_include_pathes = {}
-global_module_storage = {}
-
 ModuleTypes = {
 	UnityCppModule	= 0,
 	UnityCModule	= 1,
@@ -24,6 +21,9 @@ ModuleTypes = {
 if not tiki.default_module_type then
 	tiki.default_module_type = ModuleTypes.UnityCppModule
 end
+
+local global_module_include_pathes = {}
+local global_module_storage = {}
 
 function add_module_include_path( include_path )
 	if path.isabsolute( include_path ) then
@@ -41,6 +41,8 @@ function add_module_include_path( include_path )
 end
 
 function find_module( module_name, importer_name )
+	--print( "Module: " .. module_name )
+
 	local import_name = module_name
 	local import_base = "."
 	local import_name_slash = module_name:find( "/" )
@@ -96,7 +98,7 @@ function find_module( module_name, importer_name )
 	end
 	
 	local error_text = "Module with name '" .. module_name .. "' not found."
-	if ( importer_name ) then
+	if importer_name then
 		error_text = error_text .. " Imported by " .. importer_name .. "!"
 	end
 	throw( error_text )
@@ -117,7 +119,7 @@ function Module:new( name, initFunc )
 
 	local module_new = class_instance( self )
 	module_new.name			= name
-	module_new.config		= PlatformConfiguration:new()
+	module_new.config		= ConfigurationSet:new()
 	module_new.module_type	= tiki.default_module_type
 	module_new.stack_trace	= debug.traceback()
 		
@@ -157,6 +159,10 @@ end
 
 function Module:set_flag( name, configuration, platform )
 	self.config:set_flag( name, configuration, platform )
+end
+
+function Module:set_setting( setting, value, configuration, platform )
+	self.config:set_setting( setting, value, configuration, platform )
 end
 
 function Module:add_include_dir( include_dir, configuration, platform )
@@ -227,7 +233,7 @@ function Module:finalize_files( project )
 		end
 		
 		for j, file_name in pairs( matches ) do
-			if not io.exists( file_name ) then
+			if not os.isfile( file_name ) then
 				throw("[finalize] '" .. file_name .. "'  in '" .. self.name .. "' don't exists.")
 			end
 			
@@ -256,12 +262,12 @@ function Module:finalize_files( project )
 		local matches = os.matchfiles( pattern )
 		
 		for j,file_name in pairs( matches ) do
-			local index = table.index_of( all_files, file_name )
+			local index = table.indexof( all_files, file_name )
 			
-			while index >= 0 do
+			while index do
 				table.remove( all_files, index )
 			
-				index = table.index_of( all_files, file_name )
+				index = table.indexof( all_files, file_name )
 			end
 		end
 	end

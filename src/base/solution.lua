@@ -16,6 +16,7 @@
 
 Solution = class{
 	name = nil,
+	config = nil,
 	projects = {}
 }
 
@@ -31,7 +32,8 @@ function Solution:new( name )
 	end
 
 	local solution_new = class_instance( self )
-	solution_new.name = name
+	solution_new.name	= name
+	solution_new.config	= ConfigurationSet:new()
 	
 	return solution_new
 end
@@ -92,7 +94,11 @@ function Solution:finalize()
 	buildcommands{ _PREMAKE_COMMAND .. " /scripts=.. /to=" .. _OPTIONS[ "to" ] .. " " .. _ACTION }
 end
 
-function finalize_solution( ... )
+function Solution:finalize_configuration( config, configuration, platform )
+	self.config:get_config( configuration, platform ):apply_configuration( config )
+end
+
+function finalize_default_solution( ... )
 	local projects = {...}
 
 	local source = debug.getinfo( 2 ).source
@@ -100,6 +106,28 @@ function finalize_solution( ... )
 	
 	local solution = Solution:new( name )
 	
+	solution.config:set_define( "DEBUG", nil, "Debug" );
+	solution.config:set_define( "_DEBUG", nil, "Debug" );
+	solution.config:set_setting( ConfigurationSettings.Optimization, ConfigurationOptimization.Debug, "Debug" );
+	solution.config:set_setting( ConfigurationSettings.Symbols, ConfigurationSymbols.Full, "Debug" );
+	solution.config:set_setting( ConfigurationSettings.FloatingPoint, ConfigurationFloatingPoint.Fast, "Debug" );
+	
+	solution.config:set_define( "NDEBUG", nil, "Release" );
+	solution.config:set_setting( ConfigurationSettings.Optimization, ConfigurationOptimization.Speed, "Release" );
+	solution.config:set_setting( ConfigurationSettings.Symbols, ConfigurationSymbols.Default, "Release" );
+	solution.config:set_setting( ConfigurationSettings.FloatingPoint, ConfigurationFloatingPoint.Fast, "Release" );
+	
+	solution.config:set_define( "NDEBUG", nil, "Master" );
+	solution.config:set_setting( ConfigurationSettings.Optimization, ConfigurationOptimization.Speed, "Master" );
+	solution.config:set_setting( ConfigurationSettings.Symbols, ConfigurationSymbols.Default, "Master" );
+	solution.config:set_setting( ConfigurationSettings.FloatingPoint, ConfigurationFloatingPoint.Fast, "Master" );
+	
+	solution.config:set_setting( ConfigurationSettings.CppDialect, ConfigurationCppDialect.Cpp11 );
+	solution.config:set_setting( ConfigurationSettings.RuntimeTypeInformation, ConfigurationRuntimeTypeInformation.Off );
+	solution.config:set_setting( ConfigurationSettings.ExceptionHandling, ConfigurationExceptionHandling.Off );
+	solution.config:set_setting( ConfigurationSettings.PrecompiledHeader, ConfigurationPrecompiledHeader.Off );
+	solution.config:set_setting( ConfigurationSettings.MultiProcessorCompile, ConfigurationMultiProcessorCompile.On );
+
 	for _, project in ipairs( projects ) do
 		solution:add_project( project )
 	end

@@ -1,4 +1,4 @@
-if _ACTION == 'buildsteps'
+if _ACTION == 'buildsteps' then
 	newoption{ trigger = "script", description = "Script to load" }
 	newoption{ trigger = "project", description = "Name of the Project" }
 end

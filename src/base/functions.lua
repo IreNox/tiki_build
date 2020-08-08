@@ -68,50 +68,6 @@ function vardump(value, depth, key)
 	end
 end
 
-function io.exists( file_name )
-	local file_handle = io.open( file_name, "r" )
-	if file_handle then
-		file_handle:close()
-		return true
-	end
-	return false
-end
-
-function io.readfile( file_name )
-	local file_handle = io.open( file_name, "r" )
-	local result = ""
-	if file_handle then
-		result = file_handle:read( "*a" )
-		file_handle:close()
-	end
-	return result
-end
-
-function io.writefile( file_name, content )
-	local file_handle = io.open( file_name, "w" )
-	if file_handle then
-		file_handle:write( content )
-		file_handle:close()
-		return true
-	end
-	return false
-end
-
-function table.flatten( array_array )
-	if type( array_array ) ~= "table" then
-		throw( "table.flatten: invalid argument" )
-	end
-
-	local target = {}
-	for i,array in pairs( array_array ) do
-		for j,val in pairs( array ) do
-			target[ #target + 1 ] = val
-		end
-	end
-
-	return target
-end
-
 function table.uniq( array )
 	local hash = {}
 	
@@ -126,39 +82,6 @@ function table.uniq( array )
 	return target
 end
 
-function table.index_of( table, object )
-	local result = -1
- 
-	if type( table ) ~= "table" then
-		throw( "not a table" )
-	end
-	
-	local count = #table
-	for i = 0,count do
-		if table[ i ] == object then
-			result = i
-			break
-		end
-	end
-	
-	return result	
-end
-
-function table.contains_value( table2, value )
-	if type( table2 ) ~= "table" then
-		throw( "not a table" )
-	end
-	
-	local count = #table2
-	for i = 0,count do
-		if table2[ i ] == value then
-			return true
-		end
-	end
-	
-	return false
-end
-
 function table.remove_value( table2, value )
 	if type( table2 ) ~= "table" then
 		throw( "not a table" )
@@ -171,6 +94,15 @@ function table.remove_value( table2, value )
 			break
 		end
 	end
+end
+
+function table.length( table2 )
+	local count = 0
+	for _ in pairs( table2 ) do
+		count = count + 1
+	end
+	
+	return count
 end
 
 function copy_instance( target, source )

@@ -12,6 +12,7 @@ return
 		"base/globals.lua",
 		"base/functions.lua",
 		"base/configuration.lua",
+		"base/configuration_set.lua",
 		"base/external.lua",
 		"base/module.lua",
 		"base/project.lua",

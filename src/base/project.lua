@@ -22,7 +22,7 @@ Project = class{
 	generated_files_dir = ''
 }
 
-global_project_storage = {}
+local global_project_storage = {}
 
 function find_project( project_name )
 	for i,project in pairs( global_project_storage ) do
@@ -51,7 +51,7 @@ function Project:new( name, platforms, configurations, project_type )
 	local project_new = class_instance( self )
 	project_new.name			= name
 	project_new.type			= project_type
-	project_new.module			= Module:new( name )
+	project_new.module			= Module:new( name .. "_project" )
 	project_new.configurations	= configurations
 	project_new.platforms		= platforms
 
@@ -74,6 +74,10 @@ end
 
 function Project:set_flag( name, configuration, platform )
 	self.module:set_flag( name, configuration, platform )
+end
+
+function Project:set_setting( setting, value, configuration, platform )
+	self.module:set_setting( setting, value, configuration, platform )
 end
 
 function Project:add_include_dir( include_dir, configuration, platform )
@@ -135,30 +139,56 @@ function Project:finalize_create_configuration_directories( configuration, platf
 end
 
 function Project:finalize_config( config )
-	local array_defines = table.uniq( config.defines )
-	local array_flags = table.uniq( config.flags )
-	local array_include_dirs = table.uniq( config.include_dirs )
-	local array_library_dirs = table.uniq( config.library_dirs )
-	local array_library_files = table.uniq( config.library_files )
+	local final_defines = table.uniq( config.defines )
+	local final_flags = table.uniq( config.flags )
+	local final_include_dirs = table.uniq( config.include_dirs )
+	local final_library_dirs = table.uniq( config.library_dirs )
+	local final_library_files = table.uniq( config.library_files )
 
-	if array_defines then
-		defines( array_defines )
+	if final_defines then
+		defines( final_defines )
 	end
 	
-	if array_flags then
-		flags( array_flags )
+	if final_flags then
+		flags( final_flags )
 	end
 	
-	if array_include_dirs then
-		includedirs( array_include_dirs )
+	if final_include_dirs then
+		includedirs( final_include_dirs )
 	end
 	
-	if array_library_dirs then
-		libdirs( array_library_dirs )
+	if final_library_dirs then
+		libdirs( final_library_dirs )
 	end
 	
-	if array_library_files then
-		links( array_library_files )
+	if final_library_files then
+		links( final_library_files )
+	end
+	
+	for setting, value in pairs( config.settings ) do
+		if setting == ConfigurationSettings.RuntimeTypeInformation then
+			rtti( value )
+		elseif setting == ConfigurationSettings.ExceptionHandling then
+			exceptionhandling( value )
+		elseif setting == ConfigurationSettings.FloatingPoint then
+			floatingpoint( value )
+		elseif setting == ConfigurationSettings.Optimization then
+			optimize( value )
+		elseif setting == ConfigurationSettings.CppDialect then
+			cppdialect( value )
+		elseif setting == ConfigurationSettings.Symbols then
+			symbols( value )
+		elseif setting == ConfigurationSettings.PrecompiledHeader then
+			if value == ConfigurationPrecompiledHeader.Off then
+				flags{ "NoPCH" }
+			end
+		elseif setting == ConfigurationSettings.MultiProcessorCompile then
+			if value == ConfigurationMultiProcessorCompile.On then
+				flags{ "MultiProcessorCompile" }
+			end
+		else
+			throw( "Invalid setting " .. setting );
+		end
 	end
 end
 
@@ -211,7 +241,6 @@ end
 
 function Project:finalize_project( solution )
 	project( self.name )
-	--uuid( self.uuid )
 	kind( self.type )
 	language( self.lang )
 	
@@ -247,6 +276,7 @@ function Project:finalize_project( solution )
 
 		config_platform[ build_platform ] = Configuration:new()
 
+		solution:finalize_configuration( config_platform[ build_platform ], nil, build_platform )
 		self.module:finalize_configuration( config_platform[ build_platform ], nil, build_platform )
 		for j,cur_module in pairs( modules ) do
 			cur_module:finalize_configuration( config_platform[ build_platform ], nil, build_platform )
@@ -260,6 +290,7 @@ function Project:finalize_project( solution )
 
 		config_configuration[ build_config ] = Configuration:new()
 
+		solution:finalize_configuration( config_configuration[ build_config ], build_config, nil )
 		self.module:finalize_configuration( config_configuration[ build_config ], build_config, nil )
 		for j,cur_module in pairs( modules ) do
 			cur_module:finalize_configuration( config_configuration[ build_config ], build_config, nil )
@@ -284,6 +315,7 @@ function Project:finalize_project( solution )
 
 			local config = Configuration:new()
 
+			solution:finalize_configuration( config, build_config, build_platform )
 			self.module:finalize_configuration( config, build_config, build_platform )
 			for k,cur_module in pairs( modules ) do
 				cur_module:finalize_configuration( config, build_config, build_platform )
