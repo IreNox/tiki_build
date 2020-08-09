@@ -1,4 +1,4 @@
-newoption{ trigger = "quiet", description = "does nothing" }
+newoption{ trigger = "quiet", description = "Hide all traces" }
 newoption{ trigger = "to", description = "Location for generated project files. Default: ./build" }
 
 Platforms = {
