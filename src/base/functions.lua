@@ -32,7 +32,7 @@ function vardump(value, depth, key)
 	local spaces = ""
 
 	if key == "__index" then
-	return
+		return
 	end
 	
 	if key ~= nil then

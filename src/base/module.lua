@@ -12,6 +12,8 @@ Module = class{
 	stack_trace = ""
 }
 
+ModuleExtensions = Extendable:new()
+
 ModuleTypes = {
 	UnityCppModule	= 0,
 	UnityCModule	= 1,
@@ -105,7 +107,7 @@ function find_module( module_name, importer_name )
 	return nil
 end
 
-function Module:new( name, initFunc )
+function Module:new( name )
 	if name == nil then
 		local source = debug.getinfo( 2 ).source
 		name = source:match( "([^/]+).lua$" )
@@ -125,9 +127,7 @@ function Module:new( name, initFunc )
 		
 	table.insert( global_module_storage, module_new )
 
-	if ( initFunc ~= nil and type( initFunc ) == "function" ) then
-		initFunc( module_new )
-	end
+	ModuleExtensions:execute_new_hook( module_new );
 
 	return module_new
 end
@@ -323,7 +323,9 @@ function Module:finalize_files( project )
 	end
 end
 
-function Module:finalize(  config, project, solution )
+function Module:finalize( solution, project, config )
+	ModuleExtensions:execute_pre_finalize_hook( solution, project, self )
+
 	if self.import_func ~= nil and type( self.import_func ) == "function" then
 		self.import_func( project, solution )
 	end
@@ -331,6 +333,8 @@ function Module:finalize(  config, project, solution )
 	self:finalize_files( project )
 	
 	self.config:get_config( nil, nil ):apply_configuration( config )
+
+	ModuleExtensions:execute_post_finalize_hook( solution, project, self )
 end
 
 function Module:finalize_configuration( config, configuration, platform )

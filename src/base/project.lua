@@ -19,8 +19,11 @@ Project = class{
 	buildoptions = nil,
 	platforms = {},
 	configurations = {},
+	dependencies = {},
 	generated_files_dir = ''
 }
+
+ProjectExtensions = Extendable:new()
 
 local global_project_storage = {}
 
@@ -57,6 +60,8 @@ function Project:new( name, platforms, configurations, project_type )
 
 	table.insert( global_project_storage, project_new )
 	
+	ProjectExtensions:execute_new_hook( project_new );
+
 	return project_new
 end
 
@@ -108,6 +113,14 @@ function Project:add_external( url )
 	self.module:add_external( url )
 end
 
+function Project:add_project_dependency( project )
+	if table.contains( self.dependencies, ptoject ) then
+		return
+	end
+
+	table.insert( self.dependencies, project )
+end
+
 function Project:add_install( pattern, target_path, configuration, platform )
 	local config = self.module.config:get_config( configuration, platform )
 	
@@ -116,11 +129,11 @@ function Project:add_install( pattern, target_path, configuration, platform )
 		target = target_path
 	}
 	
-	config:add_post_build_step( "install_binary", step_data )
+	config:add_post_build_step( "install_files", step_data, self.module.config.base_path )
 end
 
 function Project:finalize_create_directories()
-	self.generated_files_dir = path.join( _OPTIONS[ "to" ], tiki.generated_files_dir, self.name )
+	self.generated_files_dir = path.getabsolute( path.join( _OPTIONS[ "to" ], tiki.generated_files_dir, self.name ) )
 	if not os.isdir( self.generated_files_dir ) then
 		print( "Create:" .. self.generated_files_dir )
 		os.mkdir( self.generated_files_dir )
@@ -239,7 +252,9 @@ function Project:finalize_build_steps( config, build_dir )
 	end
 end
 
-function Project:finalize_project( solution )
+function Project:finalize( solution )
+	ProjectExtensions:execute_pre_finalize_hook( solution, self )
+
 	project( self.name )
 	kind( self.type )
 	language( self.lang )
@@ -251,23 +266,32 @@ function Project:finalize_project( solution )
 	self:finalize_create_directories()
 	
 	local config_project = Configuration:new()
-	if self.lang == ProjectLanguages.cpp then
+	if self.lang == ProjectLanguages.Cpp then
 		config_project:set_define( "TIKI_PROJECT_NAME", self.name )
 
-		if self.type == ProjectTypes.sharedLibrary or self.type == ProjectTypes.staticLibrary then
-			config_project:set_define( "TIKI_BUILD_LIBRARY", "TIKI_ON" )
-		else
-			config_project:set_define( "TIKI_BUILD_LIBRARY", "TIKI_OFF" )
-		end
-	end
+		local is_library = self.type == ProjectTypes.SharedLibrary or self.type == ProjectTypes.StaticLibrary
+		config_project:set_define( "TIKI_BUILD_LIBRARY", iff( is_library, "TIKI_ON", "TIKI_OFF" ) )
 
+		local is_window_app = self.type == ProjectTypes.WindowApplication
+		config_project:set_define( "TIKI_BUILD_WINDOW_APP", iff( is_window_app, "TIKI_ON", "TIKI_OFF" ) )
+	end
+	
 	local modules = {}
 	self.module:resolve_dependency( modules )
-	self.module:finalize( config_project, self, solution )
 	
 	for _,cur_module in pairs( modules ) do
-		cur_module:finalize( config_project, self, solution )
+		cur_module:finalize( solution, self, config_project )
 	end
+	
+	for _, project in ipairs( self.dependencies ) do
+		if project.type == ProjectTypes.SharedLibrary or project.type == ProjectTypes.StaticLibrary then
+			config_project:add_library_file( project.name )
+		end
+
+		dependson{ project.name }
+	end
+
+	self.module:finalize( solution, self, config_project )
 
 	local config_platform = {}
 	for _,build_platform in pairs( self.platforms ) do
@@ -332,4 +356,6 @@ function Project:finalize_project( solution )
 			end
 		end
 	end
+	
+	ProjectExtensions:execute_post_finalize_hook( solution, self )
 end

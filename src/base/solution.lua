@@ -20,6 +20,8 @@ Solution = class{
 	projects = {}
 }
 
+SolutionExtensions = Extendable:new()
+
 function add_extension( name )
 	local script_path = "extensions/extension." .. name .. ".lua"
 	tiki.dofile( script_path )
@@ -34,6 +36,8 @@ function Solution:new( name )
 	local solution_new = class_instance( self )
 	solution_new.name	= name
 	solution_new.config	= ConfigurationSet:new()
+
+	SolutionExtensions:execute_new_hook( project_new );
 	
 	return solution_new
 end
@@ -51,6 +55,8 @@ function Solution:add_project( project )
 end
 
 function Solution:finalize()
+	SolutionExtensions:execute_pre_finalize_hook( self )
+
 	local var_platforms = {}
 	local var_configurations = {}
 
@@ -79,19 +85,27 @@ function Solution:finalize()
 		os.mkdir( _OPTIONS[ "to" ] )
 	end
 
+	if #self.projects > 0 then
+		local _, project = next( self.projects )
+		print( "Start Project: " .. project.name )
+		startproject( project.name )
+	end
+
 	while #self.projects > 0 do
-		local project = self.projects[ next( self.projects ) ]
+		local _, project = next( self.projects )
 		if _ACTION ~= "targets" then
 			print( "Project: " .. project.name )
 		end
 
-		project:finalize_project( self )
+		project:finalize( self )
 		table.remove_value( self.projects, project )
 	end
 	
 	configuration{ "Project" }
 	kind( "Makefile" )
 	buildcommands{ _PREMAKE_COMMAND .. " /scripts=.. /to=" .. _OPTIONS[ "to" ] .. " " .. _ACTION }
+	
+	SolutionExtensions:execute_post_finalize_hook( self )
 end
 
 function Solution:finalize_configuration( config, configuration, platform )
