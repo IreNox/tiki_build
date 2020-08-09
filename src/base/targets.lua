@@ -1,7 +1,7 @@
-newoption{ trigger = "targets_action", description = "Action to simulate" };
+newoption{ trigger = "targets_action", description = "Action to simulate" }
 
 function print_targets(sln)
-	local vstudio_configs = premake.vstudio.buildconfigs( sln );
+	local vstudio_configs = premake.vstudio.buildconfigs( sln )
 
 	local result = "[\n"
 	for i,config in pairs( vstudio_configs ) do
@@ -12,7 +12,7 @@ function print_targets(sln)
 	end
 	result = result .. "\n]"
 
-	print( result );
+	print( result )
 end
 
 newaction {

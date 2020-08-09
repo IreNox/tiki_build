@@ -136,7 +136,7 @@ function DataDumper(value, varname, fastmode, ident)
         out[#out+1] = str..","
       end
       if string.sub(out[#out], -1) == "," then
-        out[#out] = string.sub(out[#out], 1, -2);
+        out[#out] = string.sub(out[#out], 1, -2)
       end
       out[#out+1] = "}"
       return "" 

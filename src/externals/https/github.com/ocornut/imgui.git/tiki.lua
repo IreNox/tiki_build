@@ -5,17 +5,17 @@ local imgui_project = Project:new(
 	{ "x32", "x64" },
 	{ "Debug", "Release" },
 	ProjectTypes.StaticLibrary
-);
+)
 
-imgui_project:add_files( "*.h" );
-imgui_project:add_files( "imgui.cpp" );
-imgui_project:add_files( "imgui_draw.cpp" );
-imgui_project:add_files( "imgui_widgets.cpp" );
---imgui_project:add_files( "imgui_demo.cpp" );
+imgui_project:add_files( "*.h" )
+imgui_project:add_files( "imgui.cpp" )
+imgui_project:add_files( "imgui_draw.cpp" )
+imgui_project:add_files( "imgui_widgets.cpp" )
+--imgui_project:add_files( "imgui_demo.cpp" )
 
-module:add_include_dir( "." );
+module:add_include_dir( "." )
 
 module.import_func = function( project, solution )
 	project:add_project_dependency( imgui_project )
-	solution:add_project( imgui_project );
+	solution:add_project( imgui_project )
 end

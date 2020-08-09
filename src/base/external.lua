@@ -58,7 +58,7 @@ end
 
 function External:check_svn()
 	local command_line = tiki.svn_path .. " --version > nul"
-	local exit_code = os.execute( command_line );
+	local exit_code = os.execute( command_line )
 	if not exit_code then
 		throw( 'svn could not be executed.' )
 	end
@@ -66,7 +66,7 @@ end
 
 function External:check_git()
 	local command_line = tiki.git_path .. " --version > nul"
-	local exit_code = os.execute( command_line );
+	local exit_code = os.execute( command_line )
 	if not exit_code then
 		throw( 'git could not be executed.' )
 	end
@@ -212,7 +212,7 @@ function find_external_module( url )
 	
 	local external = External:new( url )
 	external:export()
-	external:load();
+	external:load()
 	
 	return external.module
 	--throw( "Could not find external with URL '" .. url .. "'. Please register before add adding it." )

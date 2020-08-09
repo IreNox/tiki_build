@@ -36,7 +36,7 @@ if not tiki.externals_dir then
 	tiki.externals_dir = 'externals'
 end
 
-local hostOs = os.host();
+local hostOs = os.host()
 if hostOs == "windows" then
 	tiki.platform = Platforms.Windows
 elseif hostOs == "bsd" or hostOs == "linux" or hostOs == "solaris" then

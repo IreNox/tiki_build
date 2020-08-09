@@ -127,7 +127,7 @@ function Module:new( name )
 		
 	table.insert( global_module_storage, module_new )
 
-	ModuleExtensions:execute_new_hook( module_new );
+	ModuleExtensions:execute_new_hook( module_new )
 
 	return module_new
 end

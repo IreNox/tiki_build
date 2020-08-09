@@ -14,9 +14,9 @@ return function( data, config )
 		data.target = path.getname( data.source )
 	end
 	
-	local target_path = path.join( config.output_path, data.target );
+	local target_path = path.join( config.output_path, data.target )
 	if is_build_required( source_path, target_path ) then
-		print( "Copy " .. data.source .. " to output directory" );
-		os.copyfile( source_path, target_path );
+		print( "Copy " .. data.source .. " to output directory" )
+		os.copyfile( source_path, target_path )
 	end
 end

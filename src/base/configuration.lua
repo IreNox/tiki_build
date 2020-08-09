@@ -72,7 +72,7 @@ Configuration = class{
 	library_files = {},
 	pre_build_steps = {},
 	post_build_steps = {}
-};
+}
 
 local global_configuration_setttings = {
 	ConfigurationRuntimeTypeInformation,
@@ -87,7 +87,7 @@ local global_configuration_setttings = {
 assert( #global_configuration_setttings == table.length( ConfigurationSettings ) )
 
 function Configuration:new()
-	return class_instance( self );
+	return class_instance( self )
 end
 
 function Configuration:check_base_path( base_path )
@@ -102,9 +102,9 @@ function Configuration:set_define( name, value )
 	end
 
 	if value == nil then
-		table.insert( self.defines, name );
+		table.insert( self.defines, name )
 	else
-		table.insert( self.defines, name .. "=" .. value );
+		table.insert( self.defines, name .. "=" .. value )
 	end
 end
 
@@ -113,7 +113,7 @@ function Configuration:set_flag( name )
 		throw("[set_flag] Invalid args.")
 	end
 
-	table.insert( self.flags, name );
+	table.insert( self.flags, name )
 end
 
 function Configuration:set_setting( setting, value )
@@ -135,51 +135,51 @@ end
 
 function Configuration:add_include_dir( include_dir, base_path )
 	if type( include_dir ) ~= "string" then
-		throw "[add_include_dir] Invalid args.";
+		throw "[add_include_dir] Invalid args."
 	end
 
-	self:check_base_path( base_path );
+	self:check_base_path( base_path )
 
-	table.insert( self.include_dirs, path.join( base_path, include_dir ) );
+	table.insert( self.include_dirs, path.join( base_path, include_dir ) )
 end
 
 function Configuration:add_library_dir( library_dir, base_path )
 	if type( library_dir ) ~= "string" then
-		throw "[add_library_dir] Invalid args.";
+		throw "[add_library_dir] Invalid args."
 	end
 
-	self:check_base_path( base_path );
+	self:check_base_path( base_path )
 
-	table.insert( self.library_dirs, path.join( base_path, library_dir ) );
+	table.insert( self.library_dirs, path.join( base_path, library_dir ) )
 end
 
 function Configuration:add_library_file( library_filename )
 	if type( library_filename ) ~= "string" then
-		throw "[add_library_file] Invalid args.";
+		throw "[add_library_file] Invalid args."
 	end
 
-	table.insert( self.library_files, library_filename );
+	table.insert( self.library_files, library_filename )
 end
 
 function Configuration:add_pre_build_step( step_script, step_data, step_base_path )
 	if type( step_script ) ~= "string" or type( step_data ) ~= "table" then
-		throw "[add_pre_build_step] Invalid args.";
+		throw "[add_pre_build_step] Invalid args."
 	end
 
-	table.insert( self.pre_build_steps, { script = "actions/" .. step_script .. ".lua", base_path = step_base_path, data = step_data } );
+	table.insert( self.pre_build_steps, { script = "actions/" .. step_script .. ".lua", base_path = step_base_path, data = step_data } )
 end
 
 function Configuration:add_post_build_step( step_script, step_data, step_base_path )
 	if type( step_script ) ~= "string" or type( step_data ) ~= "table" then
-		throw "[add_post_build_step] Invalid args.";
+		throw "[add_post_build_step] Invalid args."
 	end
 
-	table.insert( self.post_build_steps, { script = "actions/" .. step_script .. ".lua", base_path = step_base_path, data = step_data } );
+	table.insert( self.post_build_steps, { script = "actions/" .. step_script .. ".lua", base_path = step_base_path, data = step_data } )
 end
 
 function Configuration:apply_configuration( target )
 	if type( target ) ~= "table" then
-		throw "[Configuration:apply_configuration] wrong target arguments.";
+		throw "[Configuration:apply_configuration] wrong target arguments."
 	end
 	
 	for setting, value in pairs( self.settings ) do
@@ -190,13 +190,13 @@ function Configuration:apply_configuration( target )
 		target.settings[ setting ] = value
 	end
 		
-	target.defines = table.join( target.defines, self.defines );	
-	target.flags = table.join( target.flags, self.flags );
-	target.include_dirs = table.join( target.include_dirs, self.include_dirs );
-	target.library_dirs = table.join( target.library_dirs, self.library_dirs );
-	target.library_files = table.join( target.library_files, self.library_files );
-	target.binary_dirs = table.join( target.binary_dirs, self.binary_dirs );
-	target.binary_files = table.join( target.binary_files, self.binary_files );
-	target.pre_build_steps = table.join( target.pre_build_steps, self.pre_build_steps );
-	target.post_build_steps = table.join( target.post_build_steps, self.post_build_steps );
+	target.defines = table.join( target.defines, self.defines )	
+	target.flags = table.join( target.flags, self.flags )
+	target.include_dirs = table.join( target.include_dirs, self.include_dirs )
+	target.library_dirs = table.join( target.library_dirs, self.library_dirs )
+	target.library_files = table.join( target.library_files, self.library_files )
+	target.binary_dirs = table.join( target.binary_dirs, self.binary_dirs )
+	target.binary_files = table.join( target.binary_files, self.binary_files )
+	target.pre_build_steps = table.join( target.pre_build_steps, self.pre_build_steps )
+	target.post_build_steps = table.join( target.post_build_steps, self.post_build_steps )
 end

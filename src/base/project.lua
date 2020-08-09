@@ -60,7 +60,7 @@ function Project:new( name, platforms, configurations, project_type )
 
 	table.insert( global_project_storage, project_new )
 	
-	ProjectExtensions:execute_new_hook( project_new );
+	ProjectExtensions:execute_new_hook( project_new )
 
 	return project_new
 end
@@ -200,7 +200,7 @@ function Project:finalize_config( config )
 				flags{ "MultiProcessorCompile" }
 			end
 		else
-			throw( "Invalid setting " .. setting );
+			throw( "Invalid setting " .. setting )
 		end
 	end
 end
