@@ -16,6 +16,5 @@ project:add_external( "https://github.com/leethomason/tinyxml2.git" )
 project:add_external( "https://github.com/nothings/stb.git" )
 project:add_external( "https://github.com/ocornut/imgui.git" )
 project:add_external( "https://github.com/erincatto/box2d.git" )
-project:add_external( "git://git.sv.nongnu.org/freetype/freetype2.git" )
 
 finalize_default_solution( project )
