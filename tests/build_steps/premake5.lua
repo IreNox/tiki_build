@@ -11,4 +11,4 @@ project:add_files( "src/*.cpp" )
 
 project:add_post_build_step( "copy_file", { source = "src/copy.txt" } )
 
-finalize_solution( project )
+finalize_default_solution( project )

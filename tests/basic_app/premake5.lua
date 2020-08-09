@@ -9,4 +9,4 @@ local project = Project:new(
 
 project:add_files( 'src/*.cpp' )
 
-finalize_solution( project )
+finalize_default_solution( project )
