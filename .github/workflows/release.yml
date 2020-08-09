@@ -31,8 +31,10 @@ jobs:
         cd tiki_build
         ./premake5 --file=scripts/premake5.lua release
         build_id=$(git rev-list --count HEAD)
+        build_message=$(git log --format=%B -n 1 ${{ github.sha }})
         echo "Script generation successful for build $build_id"
         echo "::set-env name=build_id::$build_id"
+        echo "::set-env name=build_message::$build_message"
         cd ..
     
     - name: Create Release
@@ -45,6 +47,9 @@ jobs:
         release_name: Release ${{ env.build_id }}
         body: |
           Single script release of ${{ github.sha }}
+          
+          Changes:
+          ${{ env.build_message }}
         draft: false
         prerelease: false
 
