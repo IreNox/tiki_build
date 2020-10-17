@@ -225,14 +225,14 @@ function Module:finalize_files( project )
 	local is_unity_module = tiki.enable_unity_builds and (self.module_type == ModuleTypes.UnityCppModule or self.module_type == ModuleTypes.UnityCModule)
 
 	local all_files = {}
-	for _,pattern in pairs( self.source_files ) do
+	for _,pattern in ipairs( self.source_files ) do
 		local matches = os.matchfiles( pattern )
 		
 		if #matches == 0 then
 			throw( pattern .. "' pattern in '" .. self.name .. "' matches no files." )
 		end
 		
-		for j, file_name in pairs( matches ) do
+		for _, file_name in ipairs( matches ) do
 			if not os.isfile( file_name ) then
 				throw("[finalize] '" .. file_name .. "'  in '" .. self.name .. "' don't exists.")
 			end
@@ -243,7 +243,7 @@ function Module:finalize_files( project )
 		end
 	end
 	
-	for _,pattern in pairs( self.optional_files ) do
+	for _,pattern in ipairs( self.optional_files ) do
 		local matches = ""
 		if path.isabsolute( pattern ) then
 			matches = { pattern }
@@ -251,14 +251,14 @@ function Module:finalize_files( project )
 			matches = os.matchfiles( pattern )
 		end
 	
-		for _,file_name in pairs( matches ) do
+		for _,file_name in ipairs( matches ) do
 			if not table.contains( all_files, file_name ) then
 				all_files[#all_files+1] = file_name
 			end					
 		end
 	end
 	
-	for _,pattern in pairs( self.exclude_files ) do
+	for _,pattern in ipairs( self.exclude_files ) do
 		local matches = os.matchfiles( pattern )
 		
 		for j,file_name in pairs( matches ) do
@@ -286,7 +286,7 @@ function Module:finalize_files( project )
 		c[#c+1] = ""
 		c[#c+1] = "#define TIKI_CURRENT_MODULE \"" .. self.name .. "\""
 		c[#c+1] = ""
-		for i,file_name in pairs( all_files ) do
+		for _,file_name in ipairs( all_files ) do
 			if path.iscppfile( file_name ) then
 				local relative_file_name = path.getrelative( project.generated_files_dir, file_name )
 				c[#c+1] = string.format( "#include \"%s\"", relative_file_name )

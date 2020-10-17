@@ -1,10 +1,19 @@
--- https/sqlite.org
+-- https/www.sqlite.org
+
+local year = "2020" -- TODO
+if tiki.external.version == "latest" then
+	-- TODO: extract from releases page
+	tiki.external.version = "3330000"
+end
+
+-- url example: https://sqlite.org/2020/sqlite-amalgamation-3330000.zip
 
 local version_name = "sqlite-amalgamation-" .. tiki.external.version
-local download_path = path.join( tiki.external.export_path, "source_code.zip" )
+local file_name = version_name .. ".zip"
+local download_path = path.join( tiki.external.export_path, file_name )
 
 if not os.isfile( download_path ) then
-	local download_url = "https://www.sqlite.org/2020/" .. version_name .. ".zip"
+	local download_url = "https://www.sqlite.org/" .. year .. "/" .. file_name
 
 	print( "Download: " .. download_url )
 	local result_str, result_code = http.download( download_url, download_path )
