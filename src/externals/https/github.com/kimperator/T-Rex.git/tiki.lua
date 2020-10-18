@@ -2,7 +2,7 @@
 
 local trex_project = Project:new(
 	"trex",
-	{ "x32", "x64" },
+	{ "x86", "x64" },
 	{ "Debug", "Release" },
 	ProjectTypes.StaticLibrary
 )

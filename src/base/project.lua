@@ -285,6 +285,7 @@ function Project:finalize( solution )
 	
 	for _, project in ipairs( self.dependencies ) do
 		if project.type == ProjectTypes.SharedLibrary or project.type == ProjectTypes.StaticLibrary then
+			print( "Add Lib: " .. project.name )
 			config_project:add_library_file( project.name )
 		end
 

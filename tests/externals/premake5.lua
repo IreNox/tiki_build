@@ -1,15 +1,13 @@
--- tests/external
-
---dofile( "../../tiki_build.lua" )
+-- tests/externals
 
 local project = Project:new(
-	"external_test",
-	{ "x32", "x64" },
+	"externals_test",
+	{ "x86", "x64" },
 	{ "Debug", "Release" },
 	ProjectTypes.ConsoleApplication
 );
 
-project:add_files( 'src/*.cpp' )
+project:add_files( 'src/*.c' )
 
 project:add_external( "https://github.com/kimperator/T-Rex.git" )
 project:add_external( "https://github.com/leethomason/tinyxml2.git" )

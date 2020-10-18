@@ -2,7 +2,7 @@
 
 local box2d_project = Project:new(
 	"box2d",
-	{ "x32", "x64" },
+	{ "x86", "x64" },
 	{ "Debug", "Release" },
 	ProjectTypes.StaticLibrary
 )

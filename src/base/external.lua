@@ -2,6 +2,7 @@
 ExternalTypes = {
 	SVN		= 'svn',
 	Git		= 'git',
+	Local	= 'local',
 	Custom	= 'custom'
 }
 
@@ -35,6 +36,9 @@ function External:new( url )
 		external_new.type = ExternalTypes.Git
 	elseif url_protocol == "svn" then
 		external_new.type = ExternalTypes.SVN
+	elseif url_protocol == "local" then
+		external_new.type = ExternalTypes.Local
+		external_new.url = path.getabsolute( path.join( os.getcwd(), string.sub( external_new.url, 9, -1 ) ) )
 	elseif url_protocol == "https" then
 		external_new.type = ExternalTypes.Custom
 	else
@@ -46,6 +50,8 @@ function External:new( url )
 			external_new.version = 'HEAD'
 		elseif external_new.type == ExternalTypes.Git then
 			external_new.version = 'master'
+		elseif external_new.type == ExternalTypes.Local then
+			external_new.version = 'latest'
 		elseif external_new.type == ExternalTypes.Custom then
 			external_new.version = 'latest'
 		end
@@ -94,6 +100,11 @@ end
 	end
 
 function External:export()
+	if self.type == ExternalTypes.Local then
+		self.export_path = self.url
+		return
+	end
+
 	local externals_dir = path.getabsolute( path.join( _OPTIONS[ "to" ], tiki.externals_dir ) )
 	self.export_path = path.join( externals_dir, self.file_path )
 	
@@ -177,16 +188,19 @@ function External:export_git()
 end
 
 function External:load()
-	local import_file = path.join( self.export_path, "tiki.lua" )
+	local import_file1 = path.join( self.export_path, "tiki.lua" )
+	local import_file = import_file1
 	if not os.isfile( import_file ) then
 		import_file = path.join( "externals", self.file_path, "tiki.lua" )
 	end
 
-	print( "Load Module from " .. import_file )
-
 	if not tiki.isfile( import_file ) then
+		print( "Not found: " .. import_file1 )
+		print( "Not found: " .. import_file )
 		throw( "Could not find import file for '" .. self.url .. "'." )
 	end
+
+	print( "Load Module from " .. import_file )
 	
 	self.import_file = import_file
 	self.import_func = tiki.loadfile( import_file )

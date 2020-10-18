@@ -30,7 +30,7 @@ end
 
 local sqlite_project = Project:new(
 	"sqlite",
-	{ "x32", "x64" },
+	{ "x86", "x64" },
 	{ "Debug", "Release" },
 	ProjectTypes.StaticLibrary
 )

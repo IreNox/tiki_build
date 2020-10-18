@@ -9,12 +9,12 @@ Like in Premake create a `premake5.lua` file. But instead of premake's functions
 ```
 local project = Project:new(
 	"project_name",
-	{ "x32", "x64" },		-- platforms
+	{ "x86", "x64" },		-- platforms
 	{ "Debug", "Release" },		-- configurations
 	ProjectTypes.ConsoleApplication
 );
 
-project:add_files( 'src/*.cpp' )
+project:add_files( 'src/*.c' )
 
 finalize_solution( project )
 ```

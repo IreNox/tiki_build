@@ -2,7 +2,7 @@
 
 local imgui_project = Project:new(
 	"imgui",
-	{ "x32", "x64" },
+	{ "x86", "x64" },
 	{ "Debug", "Release" },
 	ProjectTypes.StaticLibrary
 )

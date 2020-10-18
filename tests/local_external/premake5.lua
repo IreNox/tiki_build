@@ -1,14 +1,14 @@
--- tests/build_steps
+-- tests/local_external
 
 local project = Project:new(
-	"build_steps_test",
+	"local_external_test",
 	{ "x86", "x64" },
 	{ "Debug", "Release" },
 	ProjectTypes.ConsoleApplication
 );
 
-project:add_files( "src/*.c" )
+project:add_files( 'src/*.c' )
 
-project:add_post_build_step( "copy_file", { source = "src/copy.txt" } )
+project:add_external( "local://my_external" )
 
 finalize_default_solution( project )

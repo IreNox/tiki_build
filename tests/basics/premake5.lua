@@ -1,12 +1,12 @@
--- tests/basic_app
+-- tests/basics
 
 local project = Project:new(
-	"basic_app_test",
-	{ "x32", "x64" },
+	"basics_test",
+	{ "x86", "x64" },
 	{ "Debug", "Release" },
 	ProjectTypes.ConsoleApplication
 );
 
-project:add_files( 'src/*.cpp' )
+project:add_files( 'src/*.c' )
 
 finalize_default_solution( project )
