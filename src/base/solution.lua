@@ -17,6 +17,8 @@
 Solution = class{
 	name = nil,
 	config = nil,
+	configurations = nil,
+	platforms = nil,
 	projects = {}
 }
 
@@ -27,15 +29,21 @@ function add_extension( name )
 	tiki.dofile( script_path )
 end
 
-function Solution:new( name )
+function Solution:new( name, configurations, platforms )
 	if not name then
 		local source = debug.getinfo( 2 ).source
 		name = source:match( "([^/]+)/genie.lua$" )
 	end
+	
+	if type( configurations ) ~= "table" or type( platforms ) ~= "table" then 
+		throw( "Invalid Solutuion platforms or configurations. Please provide an array." )
+	end
 
 	local solution_new = class_instance( self )
-	solution_new.name	= name
-	solution_new.config	= ConfigurationSet:new()
+	solution_new.name			= name
+	solution_new.config			= ConfigurationSet:new()
+	solution_new.configurations	= configurations
+	solution_new.platforms		= platforms
 
 	SolutionExtensions:execute_new_hook( project_new )
 	
@@ -57,26 +65,11 @@ end
 function Solution:finalize()
 	SolutionExtensions:execute_pre_finalize_hook( self )
 
-	local var_platforms = {}
-	local var_configurations = {}
-
-	for i,project in pairs( self.projects ) do
-		for i,platform in pairs( project.platforms ) do
-			if not table.contains( var_platforms, platform ) then 
-				table.insert( var_platforms, platform )
-			end
-		end
-		for j,configuration in pairs( project.configurations ) do
-			if not table.contains( var_configurations, configuration ) then 
-				table.insert( var_configurations, configuration )
-			end
-		end
-	end
-	table.insert( var_configurations, 'Project' )
+	--table.insert( self.configurations, 'Project' )
 	
 	workspace( self.name )
-	configurations( var_configurations )
-	platforms( var_platforms )
+	configurations( self.configurations )
+	platforms( self.platforms )
 	systemversion( "latest" )
 	location( _OPTIONS[ "to" ] )
 	
@@ -96,14 +89,16 @@ function Solution:finalize()
 		if _ACTION ~= "targets" then
 			print( "Project: " .. project.name )
 		end
-
+		
+		print( self )
+		
 		project:finalize( self )
 		table.remove_value( self.projects, project )
 	end
 	
-	configuration{ "Project" }
-	kind( "Makefile" )
-	buildcommands{ _PREMAKE_COMMAND .. " /scripts=.. /to=" .. _OPTIONS[ "to" ] .. " " .. _ACTION }
+	--configuration{ "Project" }
+	--kind( "Makefile" )
+	--buildcommands{ _PREMAKE_COMMAND .. " /scripts=.. /to=" .. _OPTIONS[ "to" ] .. " " .. _ACTION }
 	
 	SolutionExtensions:execute_post_finalize_hook( self )
 end
@@ -118,7 +113,13 @@ function finalize_default_solution( ... )
 	local source = debug.getinfo( 2 ).source
 	local name = source:match( "([^/]+)/premake5.lua$" )
 	
-	local solution = Solution:new( name )
+	local configurations = { "Debug", "Release" }
+	local platforms = { "x86", "x64" }
+	if tiki.target_platform == Platforms.Android then
+		platforms = { "arm", "arm64" }
+	end
+	
+	local solution = Solution:new( name, configurations, platforms )
 	
 	solution.config:set_define( "DEBUG", nil, "Debug" )
 	solution.config:set_define( "_DEBUG", nil, "Debug" )

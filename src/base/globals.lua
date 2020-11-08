@@ -3,9 +3,10 @@ newoption{ trigger = "to", description = "Location for generated project files. 
 
 Platforms = {
 	Unknown	= 0,
-	Windows	= 1,
+	Android	= 1,
 	Linux	= 2,
-	MacOS	= 3
+	MacOS	= 3,
+	Windows	= 4
 }
 
 if not tiki then
@@ -36,27 +37,33 @@ if not tiki.externals_dir then
 	tiki.externals_dir = 'externals'
 end
 
-local hostOs = os.host()
-if hostOs == "windows" then
-	tiki.platform = Platforms.Windows
-elseif hostOs == "bsd" or hostOs == "linux" or hostOs == "solaris" then
-	tiki.platform = Platforms.Linux
-elseif hostOs == "macosx" then
-	tiki.platform = Platforms.MacOS
-else
-	tiki.platform = Platforms.Unknown
+function tiki.get_platform_for_premake_string( platform )
+	if platform == "android" then
+		return Platforms.Android
+	elseif platform == "windows" then
+		return Platforms.Windows
+	elseif platform == "bsd" or platform == "linux" or platform == "solaris" then
+		return Platforms.Linux
+	elseif platform == "macosx" then
+		return Platforms.MacOS
+	end
+	
+	return Platforms.Unknown
 end
+
+tiki.host_platform		= tiki.get_platform_for_premake_string( os.host() )
+tiki.target_platform	= tiki.get_platform_for_premake_string( os.target() )
 
 if not tiki.svn_path then
 	tiki.svn_path = 'svn'
-	if tiki.platform == Platforms.Windows then
+	if tiki.host_platform == Platforms.Windows then
 		tiki.svn_path = tiki.svn_path .. '.exe'
 	end
 end
 
 if not tiki.git_path then
 	tiki.git_path = 'git'
-	if tiki.platform == Platforms.Windows then
+	if tiki.host_platform == Platforms.Windows then
 		tiki.git_path = tiki.git_path .. '.exe'
 	end
 end

@@ -28,12 +28,7 @@ if not os.isfile( download_path ) then
 	end
 end
 
-local sqlite_project = Project:new(
-	"sqlite",
-	{ "x86", "x64" },
-	{ "Debug", "Release" },
-	ProjectTypes.StaticLibrary
-)
+local sqlite_project = Project:new( "sqlite", ProjectTypes.StaticLibrary )
 
 sqlite_project.module.module_type = ModuleTypes.FilesModule
 

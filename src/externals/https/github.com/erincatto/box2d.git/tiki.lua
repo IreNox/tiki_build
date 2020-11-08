@@ -1,11 +1,6 @@
 -- https/github.com/erincatto/box2d.git
 
-local box2d_project = Project:new(
-	"box2d",
-	{ "x86", "x64" },
-	{ "Debug", "Release" },
-	ProjectTypes.StaticLibrary
-)
+local box2d_project = Project:new( "box2d", ProjectTypes.StaticLibrary )
 
 box2d_project.module.module_type = ModuleTypes.FilesModule
 

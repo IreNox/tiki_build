@@ -1,11 +1,6 @@
 -- https/github.com/kimperator/T-Rex.git
 
-local trex_project = Project:new(
-	"trex",
-	{ "x86", "x64" },
-	{ "Debug", "Release" },
-	ProjectTypes.StaticLibrary
-)
+local trex_project = Project:new( "trex", ProjectTypes.StaticLibrary )
 
 trex_project.module.module_type = ModuleTypes.FilesModule
 

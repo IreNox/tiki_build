@@ -6,19 +6,11 @@ ProjectTypes = {
 	StaticLibrary		= "StaticLib"
 }
 
-ProjectLanguages = {
-	Cpp		= "C++",
-	Cs		= "C#"
-}
-
 Project = class{
 	name = nil,
 	type = nil,
-	lang = ProjectLanguages.Cpp,
 	module = nil,
 	buildoptions = nil,
-	platforms = {},
-	configurations = {},
 	dependencies = {},
 	generated_files_dir = ''
 }
@@ -38,13 +30,9 @@ function find_project( project_name )
 	return nil
 end
 
-function Project:new( name, platforms, configurations, project_type )
+function Project:new( name, project_type )
 	if not name then 
 		throw( "No Project name given." )
-	end
-
-	if type( platforms ) ~= "table" or type( configurations ) ~= "table" then 
-		throw( "Invalid Project platforms or configurations. Please provide an array." )
 	end
 
 	if not project_type then 
@@ -52,11 +40,9 @@ function Project:new( name, platforms, configurations, project_type )
 	end
 
 	local project_new = class_instance( self )
-	project_new.name			= name
-	project_new.type			= project_type
-	project_new.module			= Module:new( name .. "_project" )
-	project_new.configurations	= configurations
-	project_new.platforms		= platforms
+	project_new.name	= name
+	project_new.type	= project_type
+	project_new.module	= Module:new( name .. "_project" )
 
 	table.insert( global_project_storage, project_new )
 	
@@ -257,7 +243,7 @@ function Project:finalize( solution )
 
 	project( self.name )
 	kind( self.type )
-	language( self.lang )
+	language( "C++" )
 	
 	if self.buildoptions then
 		buildoptions( self.buildoptions )
@@ -266,15 +252,13 @@ function Project:finalize( solution )
 	self:finalize_create_directories()
 	
 	local config_project = Configuration:new()
-	if self.lang == ProjectLanguages.Cpp then
-		config_project:set_define( "TIKI_PROJECT_NAME", self.name )
+	config_project:set_define( "TIKI_PROJECT_NAME", self.name )
 
-		local is_library = self.type == ProjectTypes.SharedLibrary or self.type == ProjectTypes.StaticLibrary
-		config_project:set_define( "TIKI_BUILD_LIBRARY", iff( is_library, "TIKI_ON", "TIKI_OFF" ) )
+	local is_library = self.type == ProjectTypes.SharedLibrary or self.type == ProjectTypes.StaticLibrary
+	config_project:set_define( "TIKI_BUILD_LIBRARY", iff( is_library, "TIKI_ON", "TIKI_OFF" ) )
 
-		local is_window_app = self.type == ProjectTypes.WindowApplication
-		config_project:set_define( "TIKI_BUILD_WINDOW_APP", iff( is_window_app, "TIKI_ON", "TIKI_OFF" ) )
-	end
+	local is_window_app = self.type == ProjectTypes.WindowApplication
+	config_project:set_define( "TIKI_BUILD_WINDOW_APP", iff( is_window_app, "TIKI_ON", "TIKI_OFF" ) )
 	
 	local modules = {}
 	self.module:resolve_dependency( modules )
@@ -295,7 +279,7 @@ function Project:finalize( solution )
 	self.module:finalize( solution, self, config_project )
 
 	local config_platform = {}
-	for _,build_platform in pairs( self.platforms ) do
+	for _,build_platform in pairs( solution.platforms ) do
 		--print( "Platform: " .. build_platform )
 		configuration{ build_platform }
 
@@ -309,7 +293,7 @@ function Project:finalize( solution )
 	end
 
 	local config_configuration = {}
-	for _,build_config in pairs( self.configurations ) do
+	for _,build_config in pairs( solution.configurations ) do
 		--print( "Configuration: " .. build_config )
 		configuration{ build_config }
 
@@ -322,8 +306,8 @@ function Project:finalize( solution )
 		end
 	end
 
-	for _,build_platform in pairs( self.platforms ) do
-		for j,build_config in pairs( self.configurations ) do
+	for _,build_platform in pairs( solution.platforms ) do
+		for j,build_config in pairs( solution.configurations ) do
 			if _ACTION ~= "targets" then
 				print( "Configuration: " .. build_platform .. "/" .. build_config )
 			end

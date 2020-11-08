@@ -1,11 +1,6 @@
 -- tests/externals
 
-local project = Project:new(
-	"externals_test",
-	{ "x86", "x64" },
-	{ "Debug", "Release" },
-	ProjectTypes.ConsoleApplication
-);
+local project = Project:new( "externals_test", ProjectTypes.ConsoleApplication )
 
 project:add_files( 'src/*.c' )
 

@@ -1,11 +1,6 @@
 -- https/github.com/ocornut/imgui.git
 
-local imgui_project = Project:new(
-	"imgui",
-	{ "x86", "x64" },
-	{ "Debug", "Release" },
-	ProjectTypes.StaticLibrary
-)
+local imgui_project = Project:new( "imgui", ProjectTypes.StaticLibrary )
 
 imgui_project:add_files( "*.h" )
 imgui_project:add_files( "imgui.cpp" )

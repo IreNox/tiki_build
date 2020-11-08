@@ -1,11 +1,6 @@
 -- https/github.com/leethomason/tinyxml2.git
 
-local tinyxml_project = Project:new(
-	"tinyxml2",
-	{ "x86", "x64" },
-	{ "Debug", "Release" },
-	ProjectTypes.StaticLibrary
-)
+local tinyxml_project = Project:new( "tinyxml2", ProjectTypes.StaticLibrary )
 
 module.module_type = ModuleTypes.FilesModule
 
