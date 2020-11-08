@@ -3,7 +3,8 @@ ProjectTypes = {
 	ConsoleApplication	= "ConsoleApp",
 	WindowApplication	= "WindowedApp",
 	SharedLibrary		= "SharedLib",
-	StaticLibrary		= "StaticLib"
+	StaticLibrary		= "StaticLib",
+	Package				= "Packaging"
 }
 
 Project = class{
@@ -100,7 +101,7 @@ function Project:add_external( url )
 end
 
 function Project:add_project_dependency( project )
-	if table.contains( self.dependencies, ptoject ) then
+	if table.contains( self.dependencies, project ) then
 		return
 	end
 
