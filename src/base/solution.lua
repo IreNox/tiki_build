@@ -65,7 +65,7 @@ end
 function Solution:finalize()
 	SolutionExtensions:execute_pre_finalize_hook( self )
 
-	--table.insert( self.configurations, 'Project' )
+	table.insert( self.configurations, 'Project' )
 	
 	workspace( self.name )
 	configurations( self.configurations )
@@ -96,9 +96,9 @@ function Solution:finalize()
 		table.remove_value( self.projects, project )
 	end
 	
-	--configuration{ "Project" }
-	--kind( "Makefile" )
-	--buildcommands{ _PREMAKE_COMMAND .. " /scripts=.. /to=" .. _OPTIONS[ "to" ] .. " " .. _ACTION }
+	configuration{ "Project" }
+	kind( "Makefile" )
+	buildcommands{ _PREMAKE_COMMAND .. " /scripts=.. /to=" .. _OPTIONS[ "to" ] .. " " .. _ACTION }
 	
 	SolutionExtensions:execute_post_finalize_hook( self )
 end
