@@ -1,0 +1,37 @@
+From 409596ba5c92a351fc9b9bfa55a7681352d4ddc7 Mon Sep 17 00:00:00 2001
+From: Tim Boden <mail@timboden.de>
+Date: Thu, 28 Jan 2021 00:18:31 +0100
+Subject: [PATCH] Use tiki_build
+
+---
+ premake5.lua      | 2 +-
+ src/_manifest.lua | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/premake5.lua b/premake5.lua
+index 777a9d97..509c98e8 100644
+--- a/premake5.lua
++++ b/premake5.lua
+@@ -139,7 +139,7 @@
+ 			flags		{ "LinkTimeOptimization" }
+ 
+ 	project "Premake5"
+-		targetname  "premake5"
++		targetname  "premake_tb"
+ 		language    "C"
+ 		kind        "ConsoleApp"
+ 		includedirs { "contrib/lua/src", "contrib/luashim" }
+diff --git a/src/_manifest.lua b/src/_manifest.lua
+index 4b5acc62..57f45f9f 100644
+--- a/src/_manifest.lua
++++ b/src/_manifest.lua
+@@ -68,4 +68,6 @@
+ 		"actions/clean/_clean.lua",
+ 
+ 		"_premake_init.lua",
++
++		"../tiki_build.lua"
+ 	}
+-- 
+2.21.0.windows.1
+

@@ -5,7 +5,41 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        path: 'tiki_build'
+        
+    - name: Write release info
+      run: |
+        cd tiki_build
+        build_id=$(git rev-list --count HEAD)
+        build_message=$(git log --format=%B -n 1 ${{ github.sha }})
+        echo "build_id=$build_id" >> $GITHUB_ENV
+        cd ..
+        echo "System Script and Executable release of ${{ github.sha }}" >> release_body.txt
+        echo "" >> release_body.txt
+        echo "Changes:" >> release_body.txt
+        echo "$build_message" >> release_body.txt
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.build_id }}
+        release_name: Release ${{ env.build_id }}
+        body_path: release_body.txt
+
+  build_script:
+    needs: create_release
     runs-on: ubuntu-latest
 
     steps:
@@ -30,36 +64,91 @@ jobs:
       run: |
         cd tiki_build
         ./premake5 --file=scripts/premake5.lua release
-        build_id=$(git rev-list --count HEAD)
-        build_message=$(git log --format=%B -n 1 ${{ github.sha }})
         echo "Script generation successful for build $build_id"
-        echo "::set-env name=build_id::$build_id"
-        echo "::set-env name=build_message::$build_message"
         cd ..
-    
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - uses: actions/upload-artifact@v2
       with:
-        tag_name: v${{ env.build_id }}
-        release_name: Release ${{ env.build_id }}
-        body: |
-          Single script release of ${{ github.sha }}
-          
-          Changes:
-          ${{ env.build_message }}
-        draft: false
-        prerelease: false
-
-    - name: Upload Release Asset
+        name: script
+        path: tiki_build/tiki_build.lua
+    
+    - name: Upload Script
       id: upload-release-asset 
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
         asset_path: ./tiki_build/tiki_build.lua
         asset_name: tiki_build.lua
         asset_content_type: application/x-lua
+
+  build_executable:
+    needs: build_script
+    runs-on: ${{ matrix.config.os }}
+    
+    strategy:
+      matrix:
+        config:
+          - os: ubuntu-latest
+          - os: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        path: 'tiki_build'
+        
+    - uses: actions/checkout@v2
+      with:
+        repository: 'premake/premake-core'
+        path: 'premake'
+        
+    - uses: actions/download-artifact@v2
+      with:
+        name: script
+        path: premake
+        
+    - name: Patch Premake
+      run: |
+        cd premake
+        git apply ../tiki_build/premake5_tiki_build.patch
+        cd ..
+    
+    - name: Build Premake Windows
+      if: matrix.config.os == 'windows-latest'
+      run: |
+        CD premake
+        CALL Bootstrap.bat
+        CD ..
+
+    - name: Upload Executable Windows
+      if: matrix.config.os == 'windows-latest'
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: ./premake/bin/release/premake_tb.exe
+        asset_name: premake_tb.exe
+        asset_content_type: application/octet-stream
+        
+    - name: Build Premake
+      if: matrix.config.os != 'windows-latest'
+      run: |
+        cd premake
+        make -f Bootstrap.mak linux 
+        cd ..
+
+    - name: Upload Executable
+      if: matrix.config.os != 'windows-latest'
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: ./premake/bin/release/premake_tb
+        asset_name: premake_tb
+        asset_content_type: application/octet-stream
