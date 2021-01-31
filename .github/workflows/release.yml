@@ -85,8 +85,8 @@ jobs:
         cd premake
         .\Bootstrap.bat
         cd ..
-        echo "output_name=exe_windows" >> $GITHUB_ENV
-        echo "output_path=premake/bin/release/premake_tb.exe" >> $GITHUB_ENV
+        echo "output_name=exe_windows" >> $env:GITHUB_ENV
+        echo "output_path=premake/bin/release/premake_tb.exe" >> $env:GITHUB_ENV
 
     - uses: actions/upload-artifact@v2
       with:
