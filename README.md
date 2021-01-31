@@ -48,13 +48,11 @@ This sample Project will contain all include and source files from `core` and `i
 
 ## Externals
 
-To import external modules from Git use the `add_external` function. For Reprositories that already have a `tiki.lua` nothing more is todo. Otherwise create a import script in your repository with the following rule. Prepend `externals/` and remove `:/` from the URL to get the path:
+To import external modules from Git use the `add_external` function. For Reprositories that already have a `tiki.lua` nothing more is todo. Otherwise create a import script in your repository with the following rule. Prepend `externals/` and remove `:/` from URL to get the path:
 
-`https://github.com/nlohmann/json.git`
-goes to
-`external/https/github.com/nlohmann/json.git/tiki.lua`
+`https://github.com/nlohmann/json.git` goes to `external/https/github.com/nlohmann/json.git/tiki.lua`
 
-An external module behaves like a normal module. You can get additional information about the external from `tiki.external`.
+An external module behaves like a normal module. You can get additional information about the external from a local variable called: `tiki.external`.
 
 tiki_build provides some prebuild externals:
 - https://github.com/erincatto/box2d.git
