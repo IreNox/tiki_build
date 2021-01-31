@@ -36,7 +36,7 @@ local function load_and_strip_file(fname, in_string)
 	return s
 end
 
-function do_release()
+function do_generate()
 	local manifest = dofile( path.join( script_path, "../src/_manifest.lua" ) )
 	
 	local output_file = io.open( path.join( script_path, "../tiki_build.lua" ), "w" )
@@ -73,3 +73,9 @@ function do_release()
 	
 	output_file:close()
 end
+
+newaction {
+	trigger     = "generate",
+	description = "Generate a single file for release",
+	execute     = do_generate
+}
