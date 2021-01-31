@@ -8,8 +8,10 @@ jobs:
   create_release:
     name: Create release
     runs-on: ubuntu-latest
+    
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
+      
     steps:
     - uses: actions/checkout@v2
       with:
@@ -39,6 +41,7 @@ jobs:
         body_path: release_body.txt
 
   build_script:
+    name: Build single-file Script
     needs: create_release
     runs-on: ubuntu-latest
 
@@ -84,7 +87,8 @@ jobs:
         asset_content_type: application/x-lua
 
   build_executable:
-    needs: build_script
+    name: Build Executables
+    needs: [create_release, build_script]
     runs-on: ${{ matrix.config.os }}
     
     strategy:
