@@ -187,16 +187,22 @@ function External:export_git()
 	end
 end
 
-function External:load()
-	local import_file1 = path.join( self.export_path, "tiki.lua" )
-	local import_file = import_file1
+function External:load( additional_import_path )
+	local tried_import_files = {}
+	local import_file = path.join( self.export_path, "tiki.lua" )
 	if not os.isfile( import_file ) then
+		table.insert( tried_import_files, import_file );
 		import_file = path.join( "externals", self.file_path, "tiki.lua" )
+		if not os.isfile( import_file ) then
+			table.insert( tried_import_files, import_file );
+			import_file = path.join( additional_import_path, "externals", self.file_path, "tiki.lua" )
+		end
 	end
 
 	if not tiki.isfile( import_file ) then
-		print( "Not found: " .. import_file1 )
-		print( "Not found: " .. import_file )
+		for _, file in ipairs( tried_import_files ) do
+			print( "Not found: " .. file )
+		end
 		throw( "Could not find import file for '" .. self.url .. "'." )
 	end
 
@@ -217,7 +223,7 @@ function External:load()
 	module = nil
 end
 
-function find_external_module( url )
+function find_external_module( url, importing_module )
 	for _, external in ipairs( global_external_storage ) do
 		if external.url == url then
 			return external.module
@@ -226,8 +232,7 @@ function find_external_module( url )
 	
 	local external = External:new( url )
 	external:export()
-	external:load()
+	external:load( importing_module.config.base_path )
 	
 	return external.module
-	--throw( "Could not find external with URL '" .. url .. "'. Please register before add adding it." )
 end

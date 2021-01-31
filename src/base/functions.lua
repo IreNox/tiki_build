@@ -12,7 +12,7 @@ end
 
 function throw( text )
 	print( debug.traceback() )
-	error( text )
+	error( text, 2 )
 end
 
 function iff( expr, when_true, when_false )

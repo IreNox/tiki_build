@@ -186,7 +186,7 @@ function Module:add_post_build_step( step_script, step_data, configuration, plat
 end
 
 function Module:add_dependency( module_name )
-	if not type( module_name ) == "string" then
+	if type( module_name ) ~= "string" then
 		throw( "module_name of a dependency must be a valid string." )		
 	end
 
@@ -212,7 +212,7 @@ function Module:resolve_dependency( target_list )
 	end
 	
 	for _, url in ipairs( self.external_dependencies ) do
-		local module = find_external_module( url )
+		local module = find_external_module( url, self )
 		
 		if not table.contains( target_list, module ) then
 			table.insert( target_list, module )
@@ -282,7 +282,7 @@ function Module:finalize_files( project )
 		local ext = iff( self.module_type == ModuleTypes.UnityCModule, "c", "cpp" )		
 		local unity_file_name = path.join( project.generated_files_dir, self.name .. "_unity." .. ext )			
 		local c = {}
-		c[#c+1] = "// Unity file created by GENie"
+		c[#c+1] = "// Unity file created by tiki_build"
 		c[#c+1] = ""
 		c[#c+1] = "#define TIKI_CURRENT_MODULE \"" .. self.name .. "\""
 		c[#c+1] = ""

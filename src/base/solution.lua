@@ -90,8 +90,6 @@ function Solution:finalize()
 			print( "Project: " .. project.name )
 		end
 		
-		print( self )
-		
 		project:finalize( self )
 		table.remove_value( self.projects, project )
 	end
