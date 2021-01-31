@@ -116,15 +116,15 @@ jobs:
         echo "Changes:" >> release_body.txt
         echo "$build_message" >> release_body.txt
 
-      - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v2
       with:
         name: script
 
-      - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v2
       with:
         name: exe_linux
 
-      - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v2
       with:
         name: exe_windows
 
