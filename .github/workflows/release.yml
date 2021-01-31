@@ -12,12 +12,12 @@ jobs:
       with:
         fetch-depth: 0
         path: 'tiki_build'
-        
+
     - uses: actions/checkout@v2
       with:
         repository: 'premake/premake-core'
         path: 'premake'
-    
+
     - name: Build Premake
       run: |
         cd premake
@@ -31,7 +31,7 @@ jobs:
         ./premake5 generate
         echo "Script generation successful for build $build_id"
         cd ..
-        
+
     - uses: actions/upload-artifact@v2
       with:
         name: script
@@ -41,7 +41,7 @@ jobs:
     name: Build Executables
     needs: build_script
     runs-on: ${{ matrix.config.os }}
-    
+
     strategy:
       matrix:
         config:
@@ -53,23 +53,23 @@ jobs:
       with:
         fetch-depth: 0
         path: 'tiki_build'
-        
+
     - uses: actions/checkout@v2
       with:
         repository: 'premake/premake-core'
         path: 'premake'
-        
+
     - uses: actions/download-artifact@v2
       with:
         name: script
         path: premake
-        
+
     - name: Patch Premake
       run: |
         cd premake
         git apply ../tiki_build/premake5_tiki_build.patch
         cd ..
-        
+
     - name: Build Premake Linux
       if: matrix.config.os != 'windows-latest'
       run: |
@@ -78,7 +78,7 @@ jobs:
         cd ..
         echo "output_name=exe_linux" >> $GITHUB_ENV
         echo "output_path=premake/bin/release/premake_tb" >> $GITHUB_ENV
-    
+
     - name: Build Premake Windows
       if: matrix.config.os == 'windows-latest'
       run: |
@@ -97,13 +97,13 @@ jobs:
     name: Create release
     needs: build_executable
     runs-on: ubuntu-latest
-      
+
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
         path: 'tiki_build'
-        
+
     - name: Write release info
       run: |
         cd tiki_build
@@ -115,15 +115,15 @@ jobs:
         echo "" >> release_body.txt
         echo "Changes:" >> release_body.txt
         echo "$build_message" >> release_body.txt
-        
+
       - uses: actions/download-artifact@v2
       with:
         name: script
-        
+
       - uses: actions/download-artifact@v2
       with:
         name: exe_linux
-        
+
       - uses: actions/download-artifact@v2
       with:
         name: exe_windows
@@ -137,7 +137,7 @@ jobs:
         tag_name: v${{ env.build_id }}
         release_name: Release ${{ env.build_id }}
         body_path: release_body.txt
-        
+
     - name: Upload Script
       uses: actions/upload-release-asset@v1
       env:
