@@ -1,5 +1,5 @@
 # tiki_build
-Module Extension on top of Premake5 with support for external Git and SVN modules
+Module Extension on top of [Premake5](https://premake.github.io/) with support for external Git and SVN modules
 
 ## Getting Started
 
