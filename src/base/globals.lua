@@ -17,8 +17,18 @@ if tiki.files == nil then
 	tiki.files = {}
 end
 
+if tiki.executable_included == nil then
+	local current_script = debug.getinfo(1,'S').source
+	local is_file = current_script:match( "^@" )
+	tiki.executable_included = (not is_file)
+end
+
 if tiki.root_path == nil then
-	tiki.root_path = path.getabsolute( path.getdirectory( _SCRIPT ) )
+	if tiki.executable_included then
+		tiki.root_path = path.getabsolute( path.getdirectory( _PREMAKE_COMMAND ) )
+	else
+		tiki.root_path = path.getabsolute( path.getdirectory( _SCRIPT ) )
+	end
 end
 
 if tiki.enable_unity_builds == nil then
@@ -35,11 +45,6 @@ end
 
 if tiki.externals_dir == nil then
 	tiki.externals_dir = 'externals'
-end
-
-if tiki.executable_included == nil then
-	local current_file = debug.getinfo(1,'S').source:match( "([^/]+)$" )
-	tiki.executable_included = (current_file ~= "tiki_build.lua")
 end
 
 function tiki.get_platform_for_premake_string( platform )
