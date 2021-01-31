@@ -3,7 +3,7 @@ Module Extension on top of Premake5 with support for external Git and SVN module
 
 ## Getting Started
 
-Place the executable of [Premake5](https://premake.github.io/download.html) and the latest version of [tiki_build.lua](https://github.com/IreNox/tiki_build/releases/latest/download/tiki_build.lua) in the root of your repository.
+Place the latest [premake_tb](https://github.com/IreNox/tiki_build/releases/latest/) executable in the root of your repository.
 
 Now create a `premake5.lua` file as for Premake. But instead of Premake's functions use the tiki_build classes like in the following Example:
 ```
