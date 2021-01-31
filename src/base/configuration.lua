@@ -166,7 +166,7 @@ function Configuration:add_pre_build_step( step_script, step_data, step_base_pat
 		throw "[add_pre_build_step] Invalid args."
 	end
 
-	table.insert( self.pre_build_steps, { script = "actions/" .. step_script .. ".lua", base_path = step_base_path, data = step_data } )
+	table.insert( self.pre_build_steps, { script = step_script, base_path = step_base_path, data = step_data } )
 end
 
 function Configuration:add_post_build_step( step_script, step_data, step_base_path )
@@ -174,7 +174,7 @@ function Configuration:add_post_build_step( step_script, step_data, step_base_pa
 		throw "[add_post_build_step] Invalid args."
 	end
 
-	table.insert( self.post_build_steps, { script = "actions/" .. step_script .. ".lua", base_path = step_base_path, data = step_data } )
+	table.insert( self.post_build_steps, { script = step_script, base_path = step_base_path, data = step_data } )
 end
 
 function Configuration:apply_configuration( target )

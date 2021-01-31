@@ -31,7 +31,21 @@ function is_build_required( source_file, target_file )
 	return false
 end
 
-function execute_build_steps()
+function tiki.execute_build_step( script, data, config )
+	local script_path = "actions/" .. script .. ".lua"
+	if not tiki.isfile( script_path )	then
+		throw( "Action script file not found at " .. script_path )
+	end
+
+	local action_function = tiki.dofile( script_path )
+	if type( action_function ) ~= "function" then
+		throw( "Script in " .. script_path .. " doesn't contain a function." )
+	end
+	
+	action_function( data, config )
+end
+
+function tiki.execute_build_steps()
 	local config = {
 		project_name = _OPTIONS[ "project" ],
 		build_path = path.getabsolute( "." ),
@@ -45,23 +59,14 @@ function execute_build_steps()
 	
 	local build_actions = dofile( script_file )
 	for i, action in pairs( build_actions ) do
-		if not tiki.isfile( action.script )	then
-			throw( "Action script file not found at " .. action.script )
-		end
-	
-		local action_function = tiki.dofile( action.script )
-		if type( action_function ) ~= "function" then
-			throw( "Script in " .. action.script .. " doesn't contain a function." )
-		end
-		
 		config.base_path = action.base_path
 		
-		action_function( action.data, config )
+		tiki.execute_build_step( action.script, action.data, config )
 	end
 end
 
 newaction {
    trigger     = "buildsteps",
    description = "Execute Build Steps",
-   execute     = execute_build_steps
+   execute     = tiki.execute_build_steps
 }

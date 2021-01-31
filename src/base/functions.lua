@@ -179,10 +179,15 @@ function tiki.dofile( file_path )
 	return file_func()
 end
 
-function get_config_dir( platform, configuration )
+function tiki.get_config_dir( platform, configuration )
 	if platform == nil or configuration == nil then
 		throw( "get_config_dir: too few arguments." )
 	end
 
 	return _OPTIONS[ "to" ] .. "/" .. platform .. "/" .. configuration
+end
+
+function tiki.add_extension( name )
+	local script_path = "extensions/extension." .. name .. ".lua"
+	tiki.dofile( script_path )
 end

@@ -119,6 +119,17 @@ function Project:add_install( pattern, target_path, configuration, platform )
 	config:add_post_build_step( "install_files", step_data, self.module.config.base_path )
 end
 
+function Project:execute_build_step( script, data )
+	local config = {
+		project_name = self.name,
+		build_path = path.getabsolute( _OPTIONS[ "to" ] ),
+		base_path = self.module.config.base_path,
+		output_path = path.getabsolute( _OPTIONS[ "to" ] )
+	}
+	
+	tiki.execute_build_step( script, data, config )
+end
+
 function Project:finalize_create_directories()
 	self.generated_files_dir = path.getabsolute( path.join( _OPTIONS[ "to" ], tiki.generated_files_dir, self.name ) )
 	if not os.isdir( self.generated_files_dir ) then
@@ -128,7 +139,7 @@ function Project:finalize_create_directories()
 end
 
 function Project:finalize_create_configuration_directories( configuration, platform )
-	local build_dir = get_config_dir( platform, configuration )
+	local build_dir = tiki.get_config_dir( platform, configuration )
 	
 	if not os.isdir( build_dir ) then
 		print( "Create:" .. build_dir )
@@ -192,51 +203,45 @@ function Project:finalize_config( config )
 	end
 end
 
-function Project:finalize_build_steps( config, build_dir )
-	local relative_build_dir = path.getrelative( _OPTIONS[ "to" ], build_dir )
-	local system_script = path.getrelative( _OPTIONS[ "to" ], path.join( tiki.root_path, "tiki_build.lua" ) )
-
-	if #config.pre_build_steps > 0 then
-		local pre_build_steps_filename = "pre_build_steps_" .. self.name .. ".lua"
-		local pre_build_steps_path = path.join( build_dir, pre_build_steps_filename )
-		local pre_build_steps_file = io.open( pre_build_steps_path, "w" )
-		if pre_build_steps_file ~= nil then
-			pre_build_steps_file:write( DataDumper( config.pre_build_steps ) )
-			pre_build_steps_file:close()
-		end	
-		
-		local command_line = {
-			_PREMAKE_COMMAND,
-			"--quiet",
-			"--systemscript=" .. system_script,
-			"--project=" .. self.name,
-			"--to=" .. relative_build_dir,
-			"--script=" .. path.join( relative_build_dir, pre_build_steps_filename ),
-			"buildsteps"
-		}
-		prebuildcommands{ table.concat( command_line, " " ) }
+function Project:finalize_build_steps_command_line( steps_name, steps, build_dir )
+	if #steps == 0 then
+		return {}
 	end
-
-	if #config.post_build_steps > 0 then
-		local post_build_steps_filename = "post_build_steps_" .. self.name .. ".lua"
-		local post_build_steps_path = path.join( build_dir, post_build_steps_filename )
-		local post_build_steps_file = io.open( post_build_steps_path, "w" )
-		if post_build_steps_file ~= nil then		
-			post_build_steps_file:write( DataDumper( config.post_build_steps ) )
-			post_build_steps_file:close()
-		end
 	
-		command_line = {
-			_PREMAKE_COMMAND,
-			"--quiet",
-			"--systemscript=" .. system_script,
-			"--project=" .. self.name,
-			"--to=" .. relative_build_dir,
-			"--script=" .. path.join( relative_build_dir, post_build_steps_filename ),
-			"buildsteps"
-		}
-		postbuildcommands{ table.concat( command_line, " " ) }
+	local relative_build_dir = path.getrelative( _OPTIONS[ "to" ], build_dir )
+
+	local build_steps_filename = steps_name .. "_" .. self.name .. ".lua"
+	local build_steps_path = path.join( build_dir, build_steps_filename )
+	local build_steps_file = io.open( build_steps_path, "w" )
+	if build_steps_file ~= nil then
+		build_steps_file:write( DataDumper( steps ) )
+		build_steps_file:close()
+	end	
+	
+	local command_line = {
+		_PREMAKE_COMMAND,
+		"--quiet",
+		"--script=" .. path.join( relative_build_dir, build_steps_filename ),
+		"--project=" .. self.name,
+		"--to=" .. relative_build_dir,
+	}
+	
+	if not tiki.executable_included then
+		local system_script = path.getrelative( _OPTIONS[ "to" ], path.join( tiki.root_path, "tiki_build.lua" ) )
+		table.insert( command_line, "--systemscript=" .. system_script )
 	end
+	
+	table.insert( command_line, "buildsteps" )
+	
+	return { table.concat( command_line, " " ) }
+end
+
+function Project:finalize_build_steps( config, build_dir )
+	local pre_build_steps = self:finalize_build_steps_command_line( "pre_build_steps", config.pre_build_steps, build_dir )
+	prebuildcommands( pre_build_steps )
+
+	local post_build_steps = self:finalize_build_steps_command_line( "post_build_steps", config.post_build_steps, build_dir )
+	postbuildcommands( post_build_steps )
 end
 
 function Project:finalize( solution )

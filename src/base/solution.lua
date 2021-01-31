@@ -24,15 +24,9 @@ Solution = class{
 
 SolutionExtensions = Extendable:new()
 
-function add_extension( name )
-	local script_path = "extensions/extension." .. name .. ".lua"
-	tiki.dofile( script_path )
-end
-
 function Solution:new( name, configurations, platforms )
 	if not name then
-		local source = debug.getinfo( 2 ).source
-		name = source:match( "([^/]+)/genie.lua$" )
+		throw( "No Solutuion name specified." )
 	end
 	
 	if type( configurations ) ~= "table" or type( platforms ) ~= "table" then 
