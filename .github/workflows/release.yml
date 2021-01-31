@@ -3,44 +3,8 @@ name: Release Version
 on: workflow_dispatch
 
 jobs:
-  create_release:
-    name: Create release
-    runs-on: ubuntu-latest
-    
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        path: 'tiki_build'
-        
-    - name: Write release info
-      run: |
-        cd tiki_build
-        build_id=$(git rev-list --count HEAD)
-        build_message=$(git log --format=%B -n 1 ${{ github.sha }})
-        echo "build_id=$build_id" >> $GITHUB_ENV
-        cd ..
-        echo "System Script and Executable release of ${{ github.sha }}" >> release_body.txt
-        echo "" >> release_body.txt
-        echo "Changes:" >> release_body.txt
-        echo "$build_message" >> release_body.txt
-
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ env.build_id }}
-        release_name: Release ${{ env.build_id }}
-        body_path: release_body.txt
-
   build_script:
     name: Build single-file Script
-    needs: create_release
     runs-on: ubuntu-latest
 
     steps:
@@ -64,7 +28,7 @@ jobs:
     - name: Generate script
       run: |
         cd tiki_build
-        ./premake5 --file=scripts/premake5.lua release
+        ./premake5 generate
         echo "Script generation successful for build $build_id"
         cd ..
         
@@ -72,21 +36,10 @@ jobs:
       with:
         name: script
         path: tiki_build/tiki_build.lua
-    
-    - name: Upload Script
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_path: ./tiki_build/tiki_build.lua
-        asset_name: tiki_build.lua
-        asset_content_type: application/x-lua
 
   build_executable:
     name: Build Executables
-    needs: [create_release, build_script]
+    needs: build_script
     runs-on: ${{ matrix.config.os }}
     
     strategy:
@@ -116,6 +69,15 @@ jobs:
         cd premake
         git apply ../tiki_build/premake5_tiki_build.patch
         cd ..
+        
+    - name: Build Premake Linux
+      if: matrix.config.os != 'windows-latest'
+      run: |
+        cd premake
+        make -f Bootstrap.mak linux 
+        cd ..
+        echo "output_name=exe_linux" >> $GITHUB_ENV
+        echo "output_path=premake/bin/release/premake_tb" >> $GITHUB_ENV
     
     - name: Build Premake Windows
       if: matrix.config.os == 'windows-latest'
@@ -123,32 +85,85 @@ jobs:
         cd premake
         .\Bootstrap.bat
         cd ..
+        echo "output_name=exe_windows" >> $GITHUB_ENV
+        echo "output_path=premake/bin/release/premake_tb.exe" >> $GITHUB_ENV
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.output_name }}
+        path: ${{ env.output_path }}
+        
+  create_release:
+    name: Create release
+    needs: build_executable
+    runs-on: ubuntu-latest
+      
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        path: 'tiki_build'
+        
+    - name: Write release info
+      run: |
+        cd tiki_build
+        build_id=$(git rev-list --count HEAD)
+        build_message=$(git log --format=%B -n 1 ${{ github.sha }})
+        echo "build_id=$build_id" >> $GITHUB_ENV
+        cd ..
+        echo "System Script and Executable release of ${{ github.sha }}" >> release_body.txt
+        echo "" >> release_body.txt
+        echo "Changes:" >> release_body.txt
+        echo "$build_message" >> release_body.txt
+        
+      - uses: actions/download-artifact@v2
+      with:
+        name: script
+        
+      - uses: actions/download-artifact@v2
+      with:
+        name: exe_linux
+        
+      - uses: actions/download-artifact@v2
+      with:
+        name: exe_windows
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.build_id }}
+        release_name: Release ${{ env.build_id }}
+        body_path: release_body.txt
+        
+    - name: Upload Script
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./tiki_build.lua
+        asset_name: tiki_build.lua
+        asset_content_type: application/x-lua
+
+    - name: Upload Executable Linux
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./premake_tb
+        asset_name: premake_tb
+        asset_content_type: application/octet-stream
 
     - name: Upload Executable Windows
-      if: matrix.config.os == 'windows-latest'
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_path: ./premake/bin/release/premake_tb.exe
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./premake_tb.exe
         asset_name: premake_tb.exe
-        asset_content_type: application/octet-stream
-        
-    - name: Build Premake
-      if: matrix.config.os != 'windows-latest'
-      run: |
-        cd premake
-        make -f Bootstrap.mak linux 
-        cd ..
-
-    - name: Upload Executable
-      if: matrix.config.os != 'windows-latest'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_path: ./premake/bin/release/premake_tb
-        asset_name: premake_tb
         asset_content_type: application/octet-stream
