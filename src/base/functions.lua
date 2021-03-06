@@ -1,9 +1,13 @@
 
 local lua_print = print
-function print(msg, ...)
+function print(msg)
 	if not _OPTIONS.quiet then
 		lua_print( msg )
 	end
+end
+
+function quiet(msg)
+	lua_print(msg)
 end
 
 function quietf(msg, ...)
@@ -11,7 +15,7 @@ function quietf(msg, ...)
 end
 
 function throw( text )
-	print( debug.traceback() )
+	lua_print( debug.traceback() )
 	error( text, 2 )
 end
 
