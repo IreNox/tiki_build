@@ -108,7 +108,7 @@ function finalize_default_solution( ... )
 	local configurations = { "Debug", "Release" }
 	local platforms = { "x86", "x64" }
 	if tiki.target_platform == Platforms.Android then
-		table.insert( platforms, "arm", )
+		table.insert( platforms, "arm" )
 		table.insert( platforms, "arm64" )
 	end
 	
