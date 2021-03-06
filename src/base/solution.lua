@@ -108,7 +108,8 @@ function finalize_default_solution( ... )
 	local configurations = { "Debug", "Release" }
 	local platforms = { "x86", "x64" }
 	if tiki.target_platform == Platforms.Android then
-		platforms = { "arm", "arm64" }
+		table.insert( platforms, "arm", )
+		table.insert( platforms, "arm64" )
 	end
 	
 	local solution = Solution:new( name, configurations, platforms )
@@ -123,11 +124,6 @@ function finalize_default_solution( ... )
 	solution.config:set_setting( ConfigurationSettings.Optimization, ConfigurationOptimization.Speed, "Release" )
 	solution.config:set_setting( ConfigurationSettings.Symbols, ConfigurationSymbols.Default, "Release" )
 	solution.config:set_setting( ConfigurationSettings.FloatingPoint, ConfigurationFloatingPoint.Fast, "Release" )
-	
-	solution.config:set_define( "NDEBUG", nil, "Master" )
-	solution.config:set_setting( ConfigurationSettings.Optimization, ConfigurationOptimization.Speed, "Master" )
-	solution.config:set_setting( ConfigurationSettings.Symbols, ConfigurationSymbols.Default, "Master" )
-	solution.config:set_setting( ConfigurationSettings.FloatingPoint, ConfigurationFloatingPoint.Fast, "Master" )
 	
 	solution.config:set_setting( ConfigurationSettings.CppDialect, ConfigurationCppDialect.Cpp11 )
 	solution.config:set_setting( ConfigurationSettings.RuntimeTypeInformation, ConfigurationRuntimeTypeInformation.Off )
