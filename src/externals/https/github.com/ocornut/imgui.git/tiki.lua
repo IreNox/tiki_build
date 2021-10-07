@@ -5,6 +5,7 @@ local imgui_project = Project:new( "imgui", ProjectTypes.StaticLibrary )
 imgui_project:add_files( "*.h" )
 imgui_project:add_files( "imgui.cpp" )
 imgui_project:add_files( "imgui_draw.cpp" )
+imgui_project:add_files( "imgui_tables.cpp" )
 imgui_project:add_files( "imgui_widgets.cpp" )
 --imgui_project:add_files( "imgui_demo.cpp" )
 
