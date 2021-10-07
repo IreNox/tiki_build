@@ -190,16 +190,17 @@ end
 function External:load( additional_import_path )
 	local tried_import_files = {}
 	local import_file = path.join( self.export_path, "tiki.lua" )
-	if not os.isfile( import_file ) then
+	if not tiki.isfile( import_file ) then
 		table.insert( tried_import_files, import_file );
 		import_file = path.join( "externals", self.file_path, "tiki.lua" )
-		if not os.isfile( import_file ) then
+		if not tiki.isfile( import_file ) then
 			table.insert( tried_import_files, import_file );
 			import_file = path.join( additional_import_path, "externals", self.file_path, "tiki.lua" )
 		end
 	end
 
 	if not tiki.isfile( import_file ) then
+		table.insert( tried_import_files, import_file );
 		for _, file in ipairs( tried_import_files ) do
 			print( "Not found: " .. file )
 		end

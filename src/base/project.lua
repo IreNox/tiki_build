@@ -32,11 +32,11 @@ function find_project( project_name )
 end
 
 function Project:new( name, project_type )
-	if not name then 
+	if type( name ) ~= "string" then 
 		throw( "No Project name given." )
 	end
 
-	if not project_type then 
+	if type( project_type ) ~= "string" then 
 		throw( "Invalid Project type. Please use the ProjectTypes enum." )
 	end
 

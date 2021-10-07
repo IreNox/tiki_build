@@ -25,7 +25,7 @@ Solution = class{
 SolutionExtensions = Extendable:new()
 
 function Solution:new( name, configurations, platforms )
-	if not name then
+	if type( name ) ~= "string" then
 		throw( "No Solutuion name specified." )
 	end
 	
