@@ -15,13 +15,12 @@ Module = class{
 ModuleExtensions = Extendable:new()
 
 ModuleTypes = {
-	UnityCppModule	= 0,
-	UnityCModule	= 1,
-	FilesModule		= 2
+	UnityModule	= 0,
+	FilesModule	= 1
 }
 
 if not tiki.default_module_type then
-	tiki.default_module_type = ModuleTypes.UnityCppModule
+	tiki.default_module_type = ModuleTypes.UnityModule
 end
 
 local global_module_include_pathes = {}
@@ -153,6 +152,10 @@ function Module:add_files( file_name, flags )
 	table.insert( target_list, path.join( self.config.base_path, file_name ) )
 end
 
+function Module:add_define( name, value, configuration, platform )
+	self.config:set_define( name, nil, configuration, platform )
+end
+
 function Module:set_define( name, value, configuration, platform )
 	self.config:set_define( name, value, configuration, platform )
 end
@@ -221,8 +224,47 @@ function Module:resolve_dependency( target_list )
 	end
 end
 
+function Module:finalize_unity_file( project, files, name )
+	local unity_file_name = path.join( project.generated_files_dir, self.name .. "_" .. name .. "_unity." .. name )
+	local c = {}
+	c[#c+1] = "// Unity file created by tiki_build"
+	c[#c+1] = ""
+	c[#c+1] = "#define TIKI_CURRENT_MODULE \"" .. self.name .. "\""
+	c[#c+1] = ""
+	for _,file_name in ipairs( files ) do
+		local relative_file_name = path.getrelative( project.generated_files_dir, file_name )
+		c[#c+1] = string.format( "#include \"%s\"", relative_file_name )
+	end
+	local unity_content = table.concat( c, "\n" )
+
+	if _ACTION ~= "targets" then
+		local write_unity = true
+		if os.isfile( unity_file_name ) then
+			local unity_file = io.open( unity_file_name, "r" )
+			if unity_file ~= nil then
+				local unity_current_content = unity_file:read("*all")
+				if unity_current_content == unity_content then
+					write_unity = false
+				end
+				unity_file:close()
+			end
+		end
+
+		if write_unity then
+			print( "Create Unity file: " .. path.getname( unity_file_name ) )
+			local unity_file = io.open( unity_file_name, "w" )
+			if unity_file ~= nil then
+				unity_file:write( unity_content )
+				unity_file:close()
+			end
+		end
+	end
+
+	return unity_file_name
+end
+
 function Module:finalize_files( project )
-	local is_unity_module = tiki.enable_unity_builds and (self.module_type == ModuleTypes.UnityCppModule or self.module_type == ModuleTypes.UnityCModule)
+	local is_unity_module = tiki.enable_unity_builds and self.module_type == ModuleTypes.UnityModule
 
 	local all_files = {}
 	for _,pattern in ipairs( self.source_files ) do
@@ -279,47 +321,26 @@ function Module:finalize_files( project )
 	configuration{}
 
 	if is_unity_module then
-		local ext = iff( self.module_type == ModuleTypes.UnityCModule, "c", "cpp" )		
-		local unity_file_name = path.join( project.generated_files_dir, self.name .. "_unity." .. ext )			
-		local c = {}
-		c[#c+1] = "// Unity file created by tiki_build"
-		c[#c+1] = ""
-		c[#c+1] = "#define TIKI_CURRENT_MODULE \"" .. self.name .. "\""
-		c[#c+1] = ""
+		local unity_c_files = {}
+		local unity_cpp_files = {}
 		for _,file_name in ipairs( all_files ) do
-			if path.iscppfile( file_name ) then
-				local relative_file_name = path.getrelative( project.generated_files_dir, file_name )
-				c[#c+1] = string.format( "#include \"%s\"", relative_file_name )
+			if path.getextension( file_name ) == ".c" then
+				table.insert( unity_c_files, file_name )
+			elseif path.iscppfile( file_name ) then
+				table.insert( unity_cpp_files, file_name )
 			end
 		end
-		local unity_content = table.concat( c, "\n" )
 
-		--excludes( all_files )
-		
-		if _ACTION ~= "targets" then
-			local create_unity = true
-			if os.isfile( unity_file_name ) then
-				local unity_file = io.open( unity_file_name, "r" )
-				if unity_file ~= nil then
-					local unity_current_content = unity_file:read("*all")
-					if unity_current_content == unity_content then
-						create_unity = false
-					end					
-					unity_file:close()
-				end
-			end
-			
-			if create_unity then
-				print( "Create Unity file: " .. path.getname( unity_file_name ) )
-				local unity_file = io.open( unity_file_name, "w" )
-				if unity_file ~= nil then
-					unity_file:write( unity_content )
-					unity_file:close()
-				end
-			end
+		local unity_files = {}
+		if #unity_c_files > 0 then
+			table.insert( unity_files, self:finalize_unity_file( project, unity_c_files, "c" ) )
+		end
+
+		if #unity_cpp_files > 0 then
+			table.insert( unity_files, self:finalize_unity_file( project, unity_cpp_files, "cpp" ) )
 		end
 		
-		files( { unity_file_name } )
+		files( unity_files )
 	end
 end
 

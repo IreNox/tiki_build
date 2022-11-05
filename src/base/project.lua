@@ -60,6 +60,10 @@ function Project:add_files( file_name, flags )
 	self.module:add_files( file_name, flags )
 end
 
+function Project:add_define( name, configuration, platform )
+	self.module:add_define( name, configuration, platform )
+end
+
 function Project:set_define( name, value, configuration, platform )
 	self.module:set_define( name, value, configuration, platform )
 end
@@ -155,7 +159,7 @@ function Project:finalize_config( config )
 	local final_include_dirs = table.uniq( config.include_dirs )
 	local final_library_dirs = table.uniq( config.library_dirs )
 	local final_library_files = table.uniq( config.library_files )
-
+	
 	if final_defines then
 		defines( final_defines )
 	end
