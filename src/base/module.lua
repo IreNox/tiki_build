@@ -135,9 +135,9 @@ function Module:set_base_path( base_path )
 	self.config:set_base_path( base_path )
 end
 
-function Module:add_files( file_name, flags )
-	if type( file_name ) ~= 'string' then
-		throw( "invalid argument in add_files: file_name must be a string" )
+function Module:add_files( pattern, flags )
+	if type( pattern ) ~= 'string' then
+		throw( "invalid argument in add_files: pattern must be a string" )
 	end
 
 	local target_list = self.source_files
@@ -149,7 +149,7 @@ function Module:add_files( file_name, flags )
 		end
 	end
 
-	table.insert( target_list, path.join( self.config.base_path, file_name ) )
+	table.insert( target_list, pattern )
 end
 
 function Module:add_define( name, value, configuration, platform )
@@ -267,8 +267,14 @@ function Module:finalize_files( project )
 	local is_unity_module = tiki.enable_unity_builds and self.module_type == ModuleTypes.UnityModule
 
 	local all_files = {}
-	for _,pattern in ipairs( self.source_files ) do
-		local matches = os.matchfiles( pattern )
+	for _, pattern in ipairs( self.source_files ) do
+		local absolut_pattern = path.join( self.config.base_path, pattern )
+		local matches = os.matchfiles( absolut_pattern )
+		
+		if is_unity_module then
+			filter( "files:" .. pattern )
+			buildaction( "None" )
+		end
 		
 		if #matches == 0 then
 			throw( pattern .. "' pattern in '" .. self.name .. "' matches no files." )
@@ -285,14 +291,19 @@ function Module:finalize_files( project )
 		end
 	end
 	
-	for _,pattern in ipairs( self.optional_files ) do
+	for _, pattern in ipairs( self.optional_files ) do
 		local matches = ""
 		if path.isabsolute( pattern ) then
 			matches = { pattern }
 		else
 			matches = os.matchfiles( pattern )
 		end
-	
+		
+		if is_unity_module then
+			filter( "files:" .. pattern )
+			buildaction( "None" )
+		end
+
 		for _,file_name in ipairs( matches ) do
 			if not table.contains( all_files, file_name ) then
 				all_files[#all_files+1] = file_name
@@ -314,11 +325,8 @@ function Module:finalize_files( project )
 		end
 	end
 
-	if is_unity_module then
-		configuration( "Project" )
-	end
+	filter{}
 	files( all_files )
-	configuration{}
 
 	if is_unity_module then
 		local unity_c_files = {}

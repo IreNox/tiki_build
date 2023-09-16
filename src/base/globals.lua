@@ -35,6 +35,10 @@ if tiki.enable_unity_builds == nil then
 	tiki.enable_unity_builds = true
 end
 
+if tiki.enable_project_configuration == nil then
+	tiki.enable_project_configuration = false
+end
+
 if not _OPTIONS[ "to" ] then
 	_OPTIONS[ "to" ] = 'build'
 end

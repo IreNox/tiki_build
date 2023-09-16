@@ -58,8 +58,10 @@ end
 
 function Solution:finalize()
 	SolutionExtensions:execute_pre_finalize_hook( self )
-
-	table.insert( self.configurations, 'Project' )
+	
+	if tiki.enable_project_configuration then
+		table.insert( self.configurations, 'Project' )
+	end
 	
 	workspace( self.name )
 	configurations( self.configurations )
@@ -88,9 +90,12 @@ function Solution:finalize()
 		table.remove_value( self.projects, project )
 	end
 	
-	configuration{ "Project" }
-	kind( "Makefile" )
-	buildcommands{ _PREMAKE_COMMAND .. " /scripts=.. /to=" .. _OPTIONS[ "to" ] .. " " .. _ACTION }
+	if tiki.enable_project_configuration then
+		filter( "configurations:Project" )
+		kind( "Makefile" )
+		buildcommands{ _PREMAKE_COMMAND .. " /scripts=.. /to=" .. _OPTIONS[ "to" ] .. " " .. _ACTION }
+		filter{}
+	end
 	
 	SolutionExtensions:execute_post_finalize_hook( self )
 end
