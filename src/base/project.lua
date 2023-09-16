@@ -32,11 +32,18 @@ function find_project( project_name )
 end
 
 function Project:new( name, project_type )
+	if project_type == nil then
+		project_type = name;
+
+		local source = debug.getinfo( 2 ).source
+		name = path.getname( path.getdirectory( source ) )
+	end
+
 	if type( name ) ~= "string" then 
 		throw( "No Project name given." )
 	end
 
-	if type( project_type ) ~= "string" then 
+	if type( project_type ) ~= "string" or not table.contains( ProjectTypes, project_type ) then 
 		throw( "Invalid Project type. Please use the ProjectTypes enum." )
 	end
 

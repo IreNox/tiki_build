@@ -111,6 +111,20 @@ function table.remove_value( table2, value )
 	end
 end
 
+function table.contains( table2, value )
+	if type( table2 ) ~= "table" then
+		throw( "not a table" )
+	end
+	
+	for _, v in pairs( table2 ) do
+		if v == value then
+			return true
+		end
+	end
+	
+	return false;
+end
+
 function table.length( table2 )
 	local count = 0
 	for _ in pairs( table2 ) do

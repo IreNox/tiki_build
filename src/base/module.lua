@@ -109,7 +109,7 @@ end
 function Module:new( name )
 	if name == nil then
 		local source = debug.getinfo( 2 ).source
-		name = source:match( "([^/]+).lua$" )
+		name = path.getbasename( source )
 	end
 
 	for _,module in pairs( global_module_storage ) do
