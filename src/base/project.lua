@@ -298,7 +298,7 @@ function Project:finalize( solution )
 	local config_platform = {}
 	for _,build_platform in pairs( solution.platforms ) do
 		--print( "Platform: " .. build_platform )
-		configuration{ build_platform }
+		filter( "platforms:" .. build_platform )
 
 		config_platform[ build_platform ] = Configuration:new()
 
@@ -312,7 +312,7 @@ function Project:finalize( solution )
 	local config_configuration = {}
 	for _,build_config in pairs( solution.configurations ) do
 		--print( "Configuration: " .. build_config )
-		configuration{ build_config }
+		filter( "configurations:" .. build_config )
 
 		config_configuration[ build_config ] = Configuration:new()
 
@@ -328,7 +328,7 @@ function Project:finalize( solution )
 			if _ACTION ~= "targets" then
 				print( "Configuration: " .. build_platform .. "/" .. build_config )
 			end
-			configuration{ build_platform, build_config }
+			filter{ "platforms:" .. build_platform, "configurations:" .. build_config }
 
 			local build_dir = ''
 			if _ACTION ~= "targets" then
@@ -358,6 +358,8 @@ function Project:finalize( solution )
 			end
 		end
 	end
+	
+	filter{}
 	
 	ProjectExtensions:execute_post_finalize_hook( solution, self )
 end
