@@ -172,6 +172,10 @@ function External:export_git()
 		head = os.outputof( base_command_line .. "rev-parse HEAD" )
 	end
 	
+	if head == "main" and self.version == "master" then
+		self.version = "main"
+	end
+	
 	if head ~= self.version then
 		print( "Fetch " .. self.url .."..." )
 		local fetch_result = os.execute( base_command_line .. "fetch" )

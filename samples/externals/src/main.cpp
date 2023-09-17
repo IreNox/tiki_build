@@ -2,7 +2,7 @@
 
 #include "box2d/b2_settings.h"
 #include "imgui.h"
-#include "stb.h"
+#include "stb_image.h"
 #include "tinyxml2.h"
 
 extern "C"
@@ -23,7 +23,7 @@ void testImGui()
 
 void testStb()
 {
-	printf( "stb Version: %d\n", STB_VERSION );
+	printf( "stbi Version: %d\n", STBI_VERSION );
 }
 
 void testTinyXML2()

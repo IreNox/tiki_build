@@ -264,6 +264,7 @@ function Module:finalize_unity_file( project, files, name )
 end
 
 function Module:finalize_files( project )
+	local relative_base_path = path.getrelative( os.getcwd(), self.config.base_path )
 	local is_unity_module = tiki.enable_unity_builds and self.module_type == ModuleTypes.UnityModule
 
 	local all_files = {}
@@ -272,7 +273,7 @@ function Module:finalize_files( project )
 		local matches = os.matchfiles( absolut_pattern )
 		
 		if is_unity_module then
-			filter( "files:" .. pattern )
+			filter( "files:" .. path.join( relative_base_path, pattern ) )
 			buildaction( "None" )
 		end
 		
@@ -300,7 +301,7 @@ function Module:finalize_files( project )
 		end
 		
 		if is_unity_module then
-			filter( "files:" .. pattern )
+			filter( "files:" .. path.join( relative_base_path, pattern ) )
 			buildaction( "None" )
 		end
 

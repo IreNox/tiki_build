@@ -54,10 +54,12 @@ To import external modules from Git use the `add_external` function. For Reprosi
 
 An external module behaves like a normal module. You can get additional information about the external from a local variable called: `tiki.external`.
 
-tiki_build provides some prebuild externals:
+tiki_build provides some built-in externals:
 - https://github.com/erincatto/box2d.git
 - https://github.com/kimperator/T-Rex.git
 - https://github.com/leethomason/tinyxml2.git
+- https://github.com/libsdl-org/SDL.git
+- https://github.com/nigels-com/glew.git
 - https://github.com/nothings/stb.git
 - https://github.com/ocornut/imgui.git
 - https://www.sqlite.org
