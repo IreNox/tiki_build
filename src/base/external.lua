@@ -38,7 +38,7 @@ function External:new( url )
 		external_new.type = ExternalTypes.SVN
 	elseif url_protocol == "local" then
 		external_new.type = ExternalTypes.Local
-		external_new.url = path.getabsolute( path.join( os.getcwd(), string.sub( external_new.url, 9, -1 ) ) )
+		external_new.url = string.sub( external_new.url, 9, -1 )
 	elseif url_protocol == "https" then
 		external_new.type = ExternalTypes.Custom
 	else
@@ -99,9 +99,9 @@ end
 		builtin_rmdir(p)
 	end
 
-function External:export()
+function External:export( additional_import_path )
 	if self.type == ExternalTypes.Local then
-		self.export_path = self.url
+		self.export_path = path.join( additional_import_path, self.url )
 		return
 	end
 
@@ -240,7 +240,7 @@ function find_external_module( url, importing_module )
 	end
 	
 	local external = External:new( url )
-	external:export()
+	external:export( importing_module.config.base_path )
 	external:load( importing_module.config.base_path )
 	
 	return external.module
