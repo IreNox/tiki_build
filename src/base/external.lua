@@ -196,10 +196,14 @@ function External:load( additional_import_path )
 	local import_file = path.join( self.export_path, "tiki.lua" )
 	if not tiki.isfile( import_file ) then
 		table.insert( tried_import_files, import_file );
-		import_file = path.join( "externals", self.file_path, "tiki.lua" )
+		import_file = path.join( additional_import_path, self.file_path, "tiki.lua" )
 		if not tiki.isfile( import_file ) then
 			table.insert( tried_import_files, import_file );
-			import_file = path.join( additional_import_path, "externals", self.file_path, "tiki.lua" )
+			import_file = path.join( "externals", self.file_path, "tiki.lua" )
+			if not tiki.isfile( import_file ) then
+				table.insert( tried_import_files, import_file );
+				import_file = path.join( additional_import_path, "externals", self.file_path, "tiki.lua" )
+			end
 		end
 	end
 

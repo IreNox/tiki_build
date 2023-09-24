@@ -9,8 +9,8 @@ return
 		"third_party/datadumper.lua",
 	
 		-- base files
-		"base/globals.lua",
 		"base/functions.lua",
+		"base/globals.lua",
 		"base/configuration.lua",
 		"base/configuration_set.lua",
 		"base/extendable.lua",
