@@ -1,4 +1,4 @@
--- build premake with empbedded tiki_build
+-- build premake with embedded tiki_build
 
 if _ACTION == 'build' then
 	newoption{ trigger = "spare", description = "Reuse the build directory" }
@@ -41,14 +41,14 @@ function do_build()
 		print( "Recreate build directory..." )
 		local result, err = force_delete( build_path );
 		if not result then
-			error( "Delete of build failed. Error:" .. err );
+			error( "Delete of build failed. Error: " .. err );
 		end
 		os.mkdir( build_path );
 		
 		print( "Clone Premake..." )
 		local clone_command_line = "git clone https://github.com/premake/premake-core.git " .. premake_path
 		if not os.execute( clone_command_line ) then
-			error( "Clone failed. Command line:" .. clone_command_line );
+			error( "Clone failed. Command line: " .. clone_command_line );
 		end
 
 		print( "Patch Premake..." )
@@ -56,7 +56,7 @@ function do_build()
 		local patch_path = path.join( root_path, "premake5_tiki_build.patch" )
 		local patch_command_line = "git apply " .. patch_path
 		if not os.execute( patch_command_line ) then
-			error( "Patch failed. Command line:" .. patch_command_line );
+			error( "Patch failed. Command line: " .. patch_command_line );
 		end
 	else
 		os.chdir( premake_path )
@@ -71,7 +71,7 @@ function do_build()
 	print( "Build Premake..." )
 	local build_command_line = "Bootstrap.bat"
 	if not os.execute( build_command_line ) then
-		error( "Build failed. Command line:" .. build_command_line );
+		error( "Build failed. Command line: " .. build_command_line );
 	end
 
 	print( "Copy build result..." )
@@ -79,7 +79,7 @@ function do_build()
 	local target_exe_path = path.join( root_path, "premake_tb.exe" );
 	result, err = os.copyfile( source_exe_path, target_exe_path )
 	if not result then
-		error( "Copy failed. Error:" .. err );
+		error( "Copy failed. Error: " .. err );
 	end
 end
 
