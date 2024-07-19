@@ -78,27 +78,6 @@ function External:check_git()
 	end
 end
 
-	local builtin_rmdir = os.rmdir
-	function bla(p)
-		-- recursively remove subdirectories
-		local dirs = os.matchdirs(p .. "/*")
-		for _, dname in ipairs(dirs) do
-			print(dname)
-			bla(dname)
-		end
-
-		-- remove any files
-		local files = os.matchfiles(p .. "/*")
-		for _, fname in ipairs(files) do
-			print(fname)
-			print( 'bla' )
-			print( os.remove(fname) )
-		end
-
-		-- remove this directory
-		builtin_rmdir(p)
-	end
-
 function External:export( additional_import_path )
 	if self.type == ExternalTypes.Local then
 		self.export_path = path.join( additional_import_path, self.url )
