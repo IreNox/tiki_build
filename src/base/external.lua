@@ -38,7 +38,6 @@ function External:new( url )
 		external_new.type = ExternalTypes.SVN
 	elseif url_protocol == "local" then
 		external_new.type = ExternalTypes.Local
-		external_new.url = string.sub( external_new.url, 9, -1 )
 	elseif url_protocol == "https" then
 		external_new.type = ExternalTypes.Custom
 	else
@@ -80,7 +79,8 @@ end
 
 function External:export( additional_import_path )
 	if self.type == ExternalTypes.Local then
-		self.export_path = path.join( additional_import_path, self.url )
+		local url_path = string.sub( self.url, 9, -1 )
+		self.export_path = path.join( additional_import_path, url_path )
 		return
 	end
 
