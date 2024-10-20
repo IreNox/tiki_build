@@ -22,17 +22,12 @@ jobs:
       run: |
         cd premake
         make -f Bootstrap.mak linux 
-        cd bin/release
-        ls -l
-        cd ../..
-        cp bin/release/premake5 ../tiki_build/
         cd ..
 
     - name: Generate script
       run: |
         cd tiki_build
-        chmod +x ./premake5
-        ./premake5 generate
+        ../premake/bin/release/premake5 generate
         echo "Script generation successful for build $build_id"
         cd ..
 
@@ -87,7 +82,11 @@ jobs:
       if: matrix.config.os == 'windows-latest'
       run: |
         cd premake
+        @echo Started help: %date% %time%
+        devenv /?
+        @echo End help: %date% %time%
         .\Bootstrap.bat
+        @echo End build: %date% %time%
         cd ..
         echo "output_name=exe_windows" >> $env:GITHUB_ENV
         echo "output_path=premake/bin/release/premake_tb.exe" >> $env:GITHUB_ENV
