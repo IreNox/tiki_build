@@ -3,7 +3,7 @@
 local repo_name = "richgel999/miniz"
 if tiki.external.version == "latest" then
 	local response, result_code = http.get( "https://api.github.com/repos/" .. repo_name .. "/releases/latest" )
-	local response_json =  json.decode( response )
+	local response_json = json.decode( response )
 
 	tiki.external.version = response_json.tag_name
 end

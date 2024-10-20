@@ -5,7 +5,8 @@ local box2d_project = Project:new( "box2d", ProjectTypes.StaticLibrary )
 box2d_project.module.module_type = ModuleTypes.FilesModule
 
 box2d_project:add_files( "include/box2d/*.h" )
-box2d_project:add_files( "src/**/*.cpp" )
+box2d_project:add_files( "src/*.h" )
+box2d_project:add_files( "src/*.c" )
 
 box2d_project:add_include_dir( "include" )
 box2d_project:add_include_dir( "src" )

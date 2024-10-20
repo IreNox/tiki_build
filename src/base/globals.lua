@@ -62,6 +62,7 @@ function tiki.get_platform_for_premake_string( platform )
 		return Platforms.MacOS
 	end
 	
+	print( "Unknown platform: ".. platform );
 	return Platforms.Unknown
 end
 

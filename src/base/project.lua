@@ -266,6 +266,11 @@ function Project:finalize( solution )
 		buildoptions( self.buildoptions )
 	end
 	
+	if tiki.host_platform == Platforms.Windows and tiki.target_platform == Platforms.Linux then
+		-- TODO: wait for PR: debugger( "LinuxWSLDebugger" )
+		toolchainversion( "wsl2" )
+	end
+	
 	self:finalize_create_directories()
 	
 	local config_project = Configuration:new()
