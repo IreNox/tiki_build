@@ -82,11 +82,7 @@ jobs:
       if: matrix.config.os == 'windows-latest'
       run: |
         cd premake
-        Write-Output "Help start: $(Get-Date)"
-        & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" /?
-        Write-Output "Help end: $(Get-Date)"
         .\Bootstrap.bat
-        Write-Output "Build end: $(Get-Date)"
         cd ..
         echo "output_name=exe_windows" >> $env:GITHUB_ENV
         echo "output_path=premake/bin/release/premake_tb.exe" >> $env:GITHUB_ENV
