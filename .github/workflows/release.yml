@@ -82,11 +82,11 @@ jobs:
       if: matrix.config.os == 'windows-latest'
       run: |
         cd premake
-        @echo Started help: %date% %time%
+        Write-Output "Help start: $(Get-Date)"
         devenv /?
-        @echo End help: %date% %time%
+        Write-Output "Help end: $(Get-Date)"
         .\Bootstrap.bat
-        @echo End build: %date% %time%
+        Write-Output "Build end: $(Get-Date)"
         cd ..
         echo "output_name=exe_windows" >> $env:GITHUB_ENV
         echo "output_path=premake/bin/release/premake_tb.exe" >> $env:GITHUB_ENV
