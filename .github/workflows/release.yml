@@ -8,12 +8,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         path: 'tiki_build'
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         repository: 'premake/premake-core'
         path: 'premake'
@@ -32,7 +32,7 @@ jobs:
         echo "Script generation successful for build $build_id"
         cd ..
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: script
         path: tiki_build/tiki_build.lua
@@ -49,17 +49,17 @@ jobs:
           - os: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         path: 'tiki_build'
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         repository: 'premake/premake-core'
         path: 'premake'
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: script
         path: premake
@@ -88,7 +88,7 @@ jobs:
         echo "output_name=exe_windows" >> $env:GITHUB_ENV
         echo "output_path=premake/bin/release/premake_tb.exe" >> $env:GITHUB_ENV
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: ${{ env.output_name }}
         path: ${{ env.output_path }}
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         path: 'tiki_build'
@@ -116,54 +116,25 @@ jobs:
         echo "Changes:" >> release_body.txt
         echo "$build_message" >> release_body.txt
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: script
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: exe_linux
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: exe_windows
 
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
+      uses: ncipollo/release-action@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ env.build_id }}
-        release_name: Release ${{ env.build_id }}
-        body_path: release_body.txt
-
-    - name: Upload Script
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./tiki_build.lua
-        asset_name: tiki_build.lua
-        asset_content_type: application/x-lua
-
-    - name: Upload Executable Linux
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./premake_tb
-        asset_name: premake_tb
-        asset_content_type: application/octet-stream
-
-    - name: Upload Executable Windows
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./premake_tb.exe
-        asset_name: premake_tb.exe
-        asset_content_type: application/octet-stream
+        tag: v${{ env.build_id }}
+        name: Release ${{ env.build_id }}
+        bodyFile: release_body.txt
+        artifacts: "tiki_build.lua,premake_tb,premake_tb.exe"
