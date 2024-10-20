@@ -22,14 +22,16 @@ jobs:
       run: |
         cd premake
         make -f Bootstrap.mak linux 
-        cp bin/release/premake5 ../tiki_build/
+        cd bin/release
         ls -l
+        cd ../..
+        cp bin/release/premake5 ../tiki_build/
         cd ..
 
     - name: Generate script
       run: |
         cd tiki_build
-        ls -l
+        chmod +x ./premake5
         ./premake5 generate
         echo "Script generation successful for build $build_id"
         cd ..
