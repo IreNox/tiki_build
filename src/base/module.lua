@@ -313,8 +313,9 @@ function Module:finalize_files( project )
 	end
 	
 	for _,pattern in ipairs( self.exclude_files ) do
-		local matches = os.matchfiles( pattern )
-		
+		local absolut_pattern = path.join( self.config.base_path, pattern )
+		local matches = os.matchfiles( absolut_pattern )
+
 		for j,file_name in pairs( matches ) do
 			local index = table.indexof( all_files, file_name )
 			

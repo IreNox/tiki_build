@@ -11,7 +11,8 @@ Project = class{
 	name = nil,
 	type = nil,
 	module = nil,
-	buildoptions = nil,
+	buildoptions = {},
+	linkoptions = {},
 	dependencies = {},
 	generated_files_dir = ''
 }
@@ -262,10 +263,14 @@ function Project:finalize( solution )
 	kind( self.type )
 	language( "C++" )
 	
-	if self.buildoptions then
+	if #self.buildoptions > 0 then
 		buildoptions( self.buildoptions )
 	end
-	
+
+	if #self.linkoptions > 0 then
+		linkoptions( self.linkoptions )
+	end
+
 	if tiki.host_platform == Platforms.Windows and tiki.target_platform == Platforms.Linux then
 		-- TODO: wait for PR: debugger( "LinuxWSLDebugger" )
 		toolchainversion( "wsl2" )
