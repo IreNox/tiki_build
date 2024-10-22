@@ -263,14 +263,6 @@ function Project:finalize( solution )
 	kind( self.type )
 	language( "C++" )
 	
-	if #self.buildoptions > 0 then
-		buildoptions( self.buildoptions )
-	end
-
-	if #self.linkoptions > 0 then
-		linkoptions( self.linkoptions )
-	end
-
 	if tiki.host_platform == Platforms.Windows and tiki.target_platform == Platforms.Linux then
 		-- TODO: wait for PR: debugger( "LinuxWSLDebugger" )
 		toolchainversion( "wsl2" )
@@ -370,6 +362,16 @@ function Project:finalize( solution )
 	end
 	
 	filter{}
+
+	if #self.buildoptions > 0 then
+		print( "have build opts" )
+		buildoptions( self.buildoptions )
+	end
+
+	if #self.linkoptions > 0 then
+		print( "have link opts" )
+		linkoptions( self.linkoptions )
+	end
 	
 	ProjectExtensions:execute_post_finalize_hook( solution, self )
 end
