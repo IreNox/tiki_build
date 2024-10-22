@@ -364,12 +364,10 @@ function Project:finalize( solution )
 	filter{}
 
 	if #self.buildoptions > 0 then
-		print( "have build opts" )
 		buildoptions( self.buildoptions )
 	end
 
 	if #self.linkoptions > 0 then
-		print( "have link opts" )
 		linkoptions( self.linkoptions )
 	end
 	
