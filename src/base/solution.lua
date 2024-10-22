@@ -121,7 +121,7 @@ function finalize_default_solution( ... )
 	
 	solution.config:set_define( "DEBUG", nil, "Debug" )
 	solution.config:set_define( "_DEBUG", nil, "Debug" )
-	solution.config:set_setting( ConfigurationSettings.Optimization, ConfigurationOptimization.Debug, "Debug" )
+	solution.config:set_setting( ConfigurationSettings.Optimization, ConfigurationOptimization.Off, "Debug" )
 	solution.config:set_setting( ConfigurationSettings.Symbols, ConfigurationSymbols.Full, "Debug" )
 	solution.config:set_setting( ConfigurationSettings.FloatingPoint, ConfigurationFloatingPoint.Fast, "Debug" )
 	

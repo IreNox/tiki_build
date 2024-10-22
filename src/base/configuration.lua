@@ -184,7 +184,7 @@ function Configuration:apply_configuration( target )
 	
 	for setting, value in pairs( self.settings ) do
 		if target.settings[ setting ] and target.settings[ setting ] ~= value then
-			throw( "Settings conflict for '" .. table.keys( ConfigurationSettings )[ setting ] .. "' with value '" .. target.settings[ setting ] .. " ' and '" .. value .. "'." )
+			throw( "Settings conflict for '" .. table.keys( ConfigurationSettings )[ setting ] .. "' with value '" .. target.settings[ setting ] .. "' and '" .. value .. "'." )
 		end
 		
 		target.settings[ setting ] = value
