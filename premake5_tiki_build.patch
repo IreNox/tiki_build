@@ -1,18 +1,19 @@
-From f62ece4ebdbfa08c3813f2c3d65ced892865ab6b Mon Sep 17 00:00:00 2001
-From: Tim Boden <mail@timboden.de>
-Date: Sat, 5 Nov 2022 01:37:15 +0100
-Subject: [PATCH] tiki
-
----
- premake5.lua      | 2 +-
- src/_manifest.lua | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/premake5.lua b/premake5.lua
-index f9f2c8bb..254975ba 100644
---- a/premake5.lua
-+++ b/premake5.lua
-@@ -195,7 +195,7 @@
+diff --git forkSrcPrefix/src/_manifest.lua forkDstPrefix/src/_manifest.lua
+index 79396b1ed72805918666f94c09fd9e761e9bff24..62352b3a443846ccac603d0eafc0d67108b0996e 100644
+--- forkSrcPrefix/src/_manifest.lua
++++ forkDstPrefix/src/_manifest.lua
+@@ -72,4 +72,6 @@
+ 		"actions/clean/_clean.lua",
+ 
+ 		"_premake_init.lua",
++
++		"../tiki_build.lua"
+ 	}
+diff --git forkSrcPrefix/premake5.lua forkDstPrefix/premake5.lua
+index 64a0f9fa59787b0d69c3c2509c9b3b6e4944332e..e1c0dd74a17ce042e38ce995eb20b3ac4a1a391b 100644
+--- forkSrcPrefix/premake5.lua
++++ forkDstPrefix/premake5.lua
+@@ -282,7 +282,7 @@
  			consumewinrtextension "false"
  
  	project "Premake5"
@@ -20,18 +21,4 @@ index f9f2c8bb..254975ba 100644
 +		targetname  "premake_tb"
  		language    "C"
  		kind        "ConsoleApp"
- 		includedirs { "contrib/lua/src", "contrib/luashim" }
-diff --git a/src/_manifest.lua b/src/_manifest.lua
-index 4b5acc62..76cd81be 100644
---- a/src/_manifest.lua
-+++ b/src/_manifest.lua
-@@ -68,4 +68,6 @@
- 		"actions/clean/_clean.lua",
  
- 		"_premake_init.lua",
-+
-+		"../tiki_build.lua"
- 	}
--- 
-2.21.0.windows.1
-
