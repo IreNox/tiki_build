@@ -137,7 +137,7 @@ function External:export_git()
 	
 	if not exists then
 		print( "Clone " .. self.url .."..." )
-		local command_line = tiki.git_path .. " clone " .. self.url .. " " .. self.export_path
+		local command_line = tiki.git_path .. " clone --depth 1 --recurse-submodules " .. self.url .. " " .. self.export_path
 		local clone_result = os.execute( command_line )
 		if not clone_result then
 			throw( "Failed to clone '" .. self.url .. "' to '" .. self.export_path .. "'." )
