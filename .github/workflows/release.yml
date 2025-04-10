@@ -14,7 +14,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update 
-        sudo apt-get -y install libcurl4-openssl-dev libzip-dev liblua5.3-dev
+        sudo apt-get -y install uuid-dev libcurl4-openssl-dev libzip-dev liblua5.3-dev
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
