@@ -76,6 +76,12 @@ jobs:
         git apply ../tiki_build/premake5_tiki_build.patch
         cd ..
 
+    - name: Install dependencies
+      if: matrix.config.os != 'windows-latest'
+      run: |
+        sudo apt-get update 
+        sudo apt-get -y install uuid-dev libcurl4-openssl-dev libzip-dev liblua5.3-dev
+        
     - name: Build Premake Linux
       if: matrix.config.os != 'windows-latest'
       run: |
