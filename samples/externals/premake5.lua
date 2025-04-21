@@ -11,6 +11,8 @@ project:add_external( "https://github.com/ocornut/imgui.git" )
 project:add_external( "https://github.com/erincatto/box2d.git" )
 
 project:add_external( "https://www.sqlite.org/" )
-project:add_external( "https://github.com/richgel999/miniz" )
+--project:add_external( "https://github.com/richgel999/miniz" )
+
+project:add_external( "vcpkg://miniz" )
 
 finalize_default_solution( project )
