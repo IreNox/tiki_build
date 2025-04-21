@@ -209,14 +209,17 @@ function External:export_git()
 	end
 end
 
+function External:get_vcpkg_triplet( platform )
+	local triplet_platform = iff( tiki.host_platform == Platforms.Windows, "windows", "linux" )
+	--local triplet_config = iff( config ~= "Debug", "-release", "" )
+	return platform .. "-" .. triplet_platform .. "-static" --.. triplet_config
+end
+
 function External:export_vcpkg( config, platform )
 	local vcpkg_path = path.getdirectory( self.export_path )
 	local vcpkg_ext = iff( tiki.host_platform == Platforms.Windows, ".exe", "" )
 	local package_name = string.sub( self.url, 9, -1 )
-	
-	local triplet_platform = iff( tiki.host_platform == Platforms.Windows, "windows", "linux" )
-	--local triplet_config = iff( config ~= "Debug", "-release", "" )
-	local triplet = platform .. "-" .. triplet_platform .. "-static" --.. triplet_config
+	local triplet = self:get_vcpkg_triplet( platform )
 	
 	local command_line = path.join( vcpkg_path, "vcpkg" .. vcpkg_ext ) .. " install --vcpkg-root=\"" .. vcpkg_path .. "\" --triplet=".. triplet .. " " .. package_name
 	local install_result = os.execute( command_line )
@@ -269,24 +272,28 @@ function External:load( additional_import_path )
 	module = nil
 	
 	if self.type == ExternalTypes.Vcpkg then
+		self.module.org_import_func = self.module.import_func
+		
 		self.module.import_func = function( project, solution )
-			local host_platform = iff( tiki.target_platform == Platforms.Windows, "windows", "linux" )
-			
 			for _, platform in pairs( solution.platforms ) do
-				local platform_dir = platform .. "-" .. host_platform .. "-static"
+				local triplet = self:get_vcpkg_triplet( platform );
 				
-				self.module:add_include_dir( platform_dir .. "/include", nil, platform )
+				self.module:add_include_dir( triplet .. "/include", nil, platform )
 			end
 
 			for _, platform in pairs( solution.platforms ) do
-				local platform_dir = platform .. "-" .. host_platform .. "-static"
+				local triplet = self:get_vcpkg_triplet( platform );
 				
 				for _, config in pairs( solution.configurations ) do
 					self:export_vcpkg( config, platform )
 				
 					local config_dir = iff( config == "Debug", "/debug", "" )
-					self.module:add_library_dir( platform_dir .. config_dir .. "/lib", config, platform )
+					self.module:add_library_dir( triplet .. config_dir .. "/lib", config, platform )
 				end
+			end
+			
+			if self.module.org_import_func then
+				self.module.org_import_func( project, solution )
 			end
 		end
 	end
