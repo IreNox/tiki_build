@@ -28,7 +28,7 @@ function find_project( project_name )
 		end
 	end
 
-	throw( "[find_project] Project with name '"..project_name.."' not found." )
+	throw( "Project with name '"..project_name.."' not found." )
 	return nil
 end
 

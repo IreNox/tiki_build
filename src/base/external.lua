@@ -2,6 +2,7 @@
 ExternalTypes = {
 	SVN		= 'svn',
 	Git		= 'git',
+	Vcpkg	= 'vcpkg',
 	Local	= 'local',
 	Custom	= 'custom'
 }
@@ -30,12 +31,14 @@ function External:new( url )
 	external_new.file_path = file_path
 
 	local url_protocol = url:match( '^(.*):' )
-	if url_protocol == "git" then
+	if url_protocol == "svn" then
+		external_new.type = ExternalTypes.SVN
+	elseif url_protocol == "git" then
 		external_new.type = ExternalTypes.Git
 	elseif url_protocol == "https" and external_new.url:endswith( ".git" ) then
 		external_new.type = ExternalTypes.Git
-	elseif url_protocol == "svn" then
-		external_new.type = ExternalTypes.SVN
+	elseif url_protocol == "vcpkg" then
+		external_new.type = ExternalTypes.Vcpkg
 	elseif url_protocol == "local" then
 		external_new.type = ExternalTypes.Local
 	elseif url_protocol == "https" then
@@ -49,6 +52,8 @@ function External:new( url )
 			external_new.version = 'HEAD'
 		elseif external_new.type == ExternalTypes.Git then
 			external_new.version = 'master'
+		elseif external_new.type == ExternalTypes.Vcpkg then
+			external_new.version = 'latest'
 		elseif external_new.type == ExternalTypes.Local then
 			external_new.version = 'latest'
 		elseif external_new.type == ExternalTypes.Custom then
@@ -77,6 +82,36 @@ function External:check_git()
 	end
 end
 
+function External:check_vcpkg()
+	self:check_git()
+	
+	local vcpkg_path = path.getdirectory( self.export_path )
+	if not os.isdir( vcpkg_path ) then
+		local command_line = tiki.git_path .. " clone --depth 1 https://github.com/microsoft/vcpkg.git " .. vcpkg_path
+	
+		local exit_code = os.execute( command_line )
+		if not exit_code then
+			throw( 'git could not clone vcpkg.' )
+		end
+		
+		local bootstrap_ext = iff( tiki.host_platform == Platforms.Windows, ".bat", ".sh" )
+		command_line = path.join( vcpkg_path, "bootstrap-vcpkg" .. bootstrap_ext )
+		print( command_line )
+		
+		exit_code = os.execute( command_line )
+		if not exit_code then
+			throw( 'vcpkg bootstrap failed.' )
+		end
+	end
+	
+	local vcpkg_ext = iff( tiki.host_platform == Platforms.Windows, ".exe", "" )
+	local command_line = path.join( vcpkg_path, "vcpkg" .. vcpkg_ext ) .. " --vcpkg-root \"" .. vcpkg_path .. "\" --version > nul"
+	local exit_code = os.execute( command_line )
+	if not exit_code then
+		throw( 'vcpkg could not be executed.' )
+	end
+end
+
 function External:export( additional_import_path )
 	if self.type == ExternalTypes.Local then
 		local url_path = string.sub( self.url, 9, -1 )
@@ -91,6 +126,10 @@ function External:export( additional_import_path )
 		self:export_svn()
 	elseif self.type == ExternalTypes.Git then
 		self:export_git()
+	elseif self.type == ExternalTypes.Vcpkg then
+		self.export_path = path.join( externals_dir, "vcpkg/installed" )
+	
+		self:check_vcpkg()
 	else
 		os.mkdir( self.export_path )
 	end
@@ -170,15 +209,37 @@ function External:export_git()
 	end
 end
 
+function External:get_vcpkg_triplet( platform )
+	local triplet_platform = iff( tiki.host_platform == Platforms.Windows, "windows", "linux" )
+	--local triplet_config = iff( config ~= "Debug", "-release", "" )
+	return platform .. "-" .. triplet_platform .. "-static" --.. triplet_config
+end
+
+function External:export_vcpkg( config, platform )
+	local vcpkg_path = path.getdirectory( self.export_path )
+	local vcpkg_ext = iff( tiki.host_platform == Platforms.Windows, ".exe", "" )
+	local package_name = string.sub( self.url, 9, -1 )
+	local triplet = self:get_vcpkg_triplet( platform )
+	
+	local command_line = path.join( vcpkg_path, "vcpkg" .. vcpkg_ext ) .. " install --vcpkg-root=\"" .. vcpkg_path .. "\" --triplet=".. triplet .. " " .. package_name
+	local install_result = os.execute( command_line )
+	if not install_result then
+		throw( "Failed to install '" .. self.url .. "' to '" .. self.export_path .. "' with exit code " .. install_result .. "." )
+	end
+end
+
 function External:load( additional_import_path )
 	local tried_import_files = {}
 	local import_file = path.join( self.export_path, "tiki.lua" )
+	
 	if not tiki.isfile( import_file ) then
 		table.insert( tried_import_files, import_file );
 		import_file = path.join( additional_import_path, self.file_path, "tiki.lua" )
+		
 		if not tiki.isfile( import_file ) then
 			table.insert( tried_import_files, import_file );
 			import_file = path.join( "externals", self.file_path, "tiki.lua" )
+			
 			if not tiki.isfile( import_file ) then
 				table.insert( tried_import_files, import_file );
 				import_file = path.join( additional_import_path, "externals", self.file_path, "tiki.lua" )
@@ -209,6 +270,33 @@ function External:load( additional_import_path )
 	
 	tiki.external = nil
 	module = nil
+	
+	if self.type == ExternalTypes.Vcpkg then
+		self.module.org_import_func = self.module.import_func
+		
+		self.module.import_func = function( project, solution )
+			for _, platform in pairs( solution.platforms ) do
+				local triplet = self:get_vcpkg_triplet( platform );
+				
+				self.module:add_include_dir( triplet .. "/include", nil, platform )
+			end
+
+			for _, platform in pairs( solution.platforms ) do
+				local triplet = self:get_vcpkg_triplet( platform );
+				
+				for _, config in pairs( solution.configurations ) do
+					self:export_vcpkg( config, platform )
+				
+					local config_dir = iff( config == "Debug", "/debug", "" )
+					self.module:add_library_dir( triplet .. config_dir .. "/lib", config, platform )
+				end
+			end
+			
+			if self.module.org_import_func then
+				self.module.org_import_func( project, solution )
+			end
+		end
+	end
 end
 
 function find_external_module( url, importing_module )

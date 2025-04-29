@@ -1,9 +1,10 @@
 #include <stdio.h>
 
-#include "box2d/b2_settings.h"
+#include "box2d/box2d.h"
 #include "imgui.h"
 #include "stb_image.h"
 #include "tinyxml2.h"
+#include <miniz/miniz.h>
 
 extern "C"
 {
@@ -12,6 +13,7 @@ extern "C"
 
 void testBox2D()
 {
+	const b2Version b2_version = b2GetVersion();
 	printf( "Box2D Version: %d.%d.%d\n", b2_version.major, b2_version.minor, b2_version.revision );
 }
 
@@ -37,6 +39,11 @@ void testTRex()
 	trex_free( pTest );
 }
 
+void testMiniZ()
+{
+	printf( "MiniZ Version: %s\n", mz_version() );
+}
+
 int main()
 {
 	testBox2D();
@@ -44,6 +51,7 @@ int main()
 	testStb();
 	testTinyXML2();
 	testTRex();
+	testMiniZ();
 
 	return 0;
 }
