@@ -271,6 +271,10 @@ function Project:finalize( solution )
 	self:finalize_create_directories()
 	
 	local config_project = Configuration:new()
+	
+	solution:finalize_configuration( config_project, nil, nil )
+	self.module:finalize_configuration( config_project, nil, nil )
+	
 	config_project:set_define( "TIKI_PROJECT_NAME", self.name )
 
 	local is_library = self.type == ProjectTypes.SharedLibrary or self.type == ProjectTypes.StaticLibrary
